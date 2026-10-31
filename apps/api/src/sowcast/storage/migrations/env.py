@@ -1,4 +1,5 @@
 from alembic import context
+
 from sowcast.storage.models import Base
 
 connection = context.config.attributes["connection"]

@@ -1,6 +1,5 @@
-from sqlalchemy import Column, Float, String, Text, inspect
-
 from alembic import op
+from sqlalchemy import Column, Float, String, Text, inspect
 
 revision = "0001"
 down_revision = None

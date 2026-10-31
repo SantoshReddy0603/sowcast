@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 from weakref import WeakKeyDictionary
 
+from alembic import command
 from alembic.config import Config
 from asyncpg.exceptions import PostgresError
 from sqlalchemy import Connection, text
@@ -15,7 +16,6 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.pool import NullPool
 
-from alembic import command
 from sowcast.storage.errors import StorageUnavailable
 
 STORAGE_FAILURES = (SQLAlchemyError, PostgresError, OSError, TimeoutError)
