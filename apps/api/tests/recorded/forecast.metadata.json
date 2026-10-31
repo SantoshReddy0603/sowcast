@@ -1,0 +1,6 @@
+{
+  "fetched_at": "2026-10-30T15:55:09.1842892Z",
+  "purpose": "Isolated recorded-response tests only",
+  "attribution": "https://open-meteo.com/",
+  "url": "https://api.open-meteo.com/v1/forecast?latitude=12.97&longitude=77.59&hourly=temperature_2m,precipitation,et0_fao_evapotranspiration,soil_moisture_0_to_1cm,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,et0_fao_evapotranspiration&forecast_days=14&timezone=UTC&timeformat=unixtime&temperature_unit=celsius&wind_speed_unit=kmh&precipitation_unit=mm"
+}

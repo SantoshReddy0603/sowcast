@@ -1,0 +1,7 @@
+{
+  "request_url": "https://archive-api.open-meteo.com/v1/archive?latitude=12.97&longitude=77.59&start_date=2026-08-26&end_date=2026-10-25&timezone=UTC&timeformat=unixtime&temperature_unit=celsius&precipitation_unit=mm&hourly=temperature_2m%2Cprecipitation&models=era5",
+  "fetched_at": "2026-10-30T18:34:23.521093+00:00",
+  "start_date": "2026-08-26",
+  "end_date": "2026-10-24",
+  "source_end_date": "2026-10-25"
+}

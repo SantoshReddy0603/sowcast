@@ -1,0 +1,75 @@
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [
+      78.13,
+      13.14,
+      793.9
+    ]
+  },
+  "properties": {
+    "parameter": {
+      "T2M": {
+        "20261015": 24.27,
+        "20261016": 22.5,
+        "20261017": 23.96,
+        "20261018": 23.16,
+        "20261019": 24.17,
+        "20261020": 23.78,
+        "20261021": 22.38
+      },
+      "PRECTOTCORR": {
+        "20261015": 11.91,
+        "20261016": 26.28,
+        "20261017": 17.76,
+        "20261018": 4.9,
+        "20261019": 7.73,
+        "20261020": 5.62,
+        "20261021": 15.28
+      },
+      "ALLSKY_SFC_SW_DWN": {
+        "20261015": -999.0,
+        "20261016": -999.0,
+        "20261017": -999.0,
+        "20261018": -999.0,
+        "20261019": -999.0,
+        "20261020": -999.0,
+        "20261021": -999.0
+      }
+    }
+  },
+  "header": {
+    "title": "NASA/POWER Source Native Resolution Daily Data",
+    "api": {
+      "version": "v2.10.1",
+      "name": "POWER Daily API"
+    },
+    "sources": [
+      "GEOSIT"
+    ],
+    "fill_value": -999.0,
+    "time_standard": "UTC",
+    "start": "20261015",
+    "end": "20261021"
+  },
+  "messages": [],
+  "parameters": {
+    "T2M": {
+      "units": "C",
+      "longname": "Temperature at 2 Meters"
+    },
+    "PRECTOTCORR": {
+      "units": "mm/day",
+      "longname": "Precipitation Corrected"
+    },
+    "ALLSKY_SFC_SW_DWN": {
+      "units": "MJ/m^2/day",
+      "longname": "All Sky Surface Shortwave Downward Irradiance"
+    }
+  },
+  "times": {
+    "data": 0.32,
+    "process": 0.01
+  }
+}

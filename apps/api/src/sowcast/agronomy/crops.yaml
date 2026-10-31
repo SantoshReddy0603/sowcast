@@ -1,0 +1,657 @@
+version: 1.1.0
+disabled: &id001
+  enabled: false
+  value: null
+  citation: null
+  reason: No opened permitted source verified this parameter for the intended rule
+    and crop.
+crops:
+  ragi:
+    gdd_base_c: *id001
+    heat_above_c: *id001
+    frost_below_c: *id001
+    waterlogging_excess_mm: *id001
+    sowing_months: *id001
+    sowing_min_c: *id001
+    sowing_max_c: *id001
+    kc_initial:
+      enabled: false
+      value: null
+      citation: null
+      reason: FAO-56 generic Millet or Pulses rows do not verify finger millet or
+        pigeon pea specifically; no substitution applied.
+    kc_mid:
+      enabled: false
+      value: null
+      citation: null
+      reason: FAO-56 generic Millet or Pulses rows do not verify finger millet or
+        pigeon pea specifically; no substitution applied.
+    kc_end:
+      enabled: false
+      value: null
+      citation: null
+      reason: FAO-56 generic Millet or Pulses rows do not verify finger millet or
+        pigeon pea specifically; no substitution applied.
+    days_initial:
+      enabled: false
+      value: null
+      citation: null
+      reason: FAO-56 generic Millet or Pulses rows do not verify finger millet or
+        pigeon pea specifically; no substitution applied.
+    days_development:
+      enabled: false
+      value: null
+      citation: null
+      reason: FAO-56 generic Millet or Pulses rows do not verify finger millet or
+        pigeon pea specifically; no substitution applied.
+    days_mid:
+      enabled: false
+      value: null
+      citation: null
+      reason: FAO-56 generic Millet or Pulses rows do not verify finger millet or
+        pigeon pea specifically; no substitution applied.
+    days_late:
+      enabled: false
+      value: null
+      citation: null
+      reason: FAO-56 generic Millet or Pulses rows do not verify finger millet or
+        pigeon pea specifically; no substitution applied.
+    sowing_window:
+      enabled: true
+      value: July 2nd week to August 2nd week
+      unit: calendar_window
+      reference_only: true
+      districts:
+      - Kolar
+      reason: Kharif rainfed historical calendar reference only. Week bounds are not
+        converted to invented dates; onset and soil readiness remain unverified.
+      citation:
+        title: 'Agriculture Contingency Plan for District: Kolar'
+        publisher: ICAR-CRIDA district contingency plan; Agricultural Research Station,
+          Chintamani (UAS Bengaluru)
+        url: https://www.icar-crida.res.in/CP-2012/statewiseplans/Karnataka%20(Pdf)/GKVK,%20Bangalore/KAR15-KOLAR%2031.03.2011.pdf
+        locator: Section 1.12, normal sowing-window table, Kharif-Rainfed row, Ragi
+          column; printed page not reliably recoverable from text extraction
+        statement: Normal sowing period for this crop under Kharif rainfed conditions
+          in Kolar.
+        number_as_written: July 2nd week to August 2nd week
+        region: Kolar only; historical 2011 document
+    onset_rainfall_mm:
+      enabled: false
+      value: null
+      citation: null
+      reason: No verified numeric onset criterion (rainfall amount, accumulation period
+        and subsequent dry-spell condition) found for this crop/district; monsoon
+        onset dates are not rainfall thresholds.
+  paddy:
+    gdd_base_c: *id001
+    heat_above_c:
+      enabled: true
+      value: 35
+      unit: degC
+      stage: flowering
+      citation:
+        title: 'Climate Change: Impact on Photosynthesis and Productivity of Rice'
+        publisher: ICAR - National Rice Research Institute
+        url: https://icar-nrri.in/wp-content/uploads/2023/05/BOOK-PHOTOSYNTHESIS-CLIMATE-CHANGE.pdf#page=68
+        locator: PDF page 68, printed page 68, section 3.2, High Temperature Stress
+          on Rice Grain Quality
+        statement: Exposure exceeding 35 degrees Celsius for a few hours during flowering
+          can increase spikelet sterility.
+        number_as_written: 35°C
+        region: National/international rice discussion; not calibrated for the named
+          Karnataka districts
+      reason: Hourly exceedance is a screening signal; duration, anthesis timing and
+        cultivar determine damage.
+    frost_below_c: *id001
+    waterlogging_excess_mm: *id001
+    sowing_months: *id001
+    sowing_min_c: *id001
+    sowing_max_c: *id001
+    kc_initial:
+      enabled: true
+      value: 1.05
+      unit: dimensionless
+      reference_only: true
+      reason: Unadjusted FAO reference coefficient for non-stressed well-managed crops;
+        wetting frequency and climate require local adjustment. Tomato mid assumes
+        no tall-staked crop adjustment. Paddy initial assumes the standing-water/subhumid
+        reference regime.
+      citation:
+        title: 'Crop Evapotranspiration: Guidelines for Computing Crop Water Requirements
+          (FAO Irrigation and Drainage Paper 56)'
+        publisher: Food and Agriculture Organization of the United Nations
+        url: https://www.fao.org/4/x0490e/x0490e0b.htm
+        locator: Table 12, Rice, initial column
+        statement: Unadjusted FAO reference coefficient for non-stressed well-managed
+          crops; wetting frequency and climate require local adjustment. Tomato mid
+          assumes no tall-staked crop adjustment. Paddy initial assumes the standing-water/subhumid
+          reference regime.
+        number_as_written: '1.05'
+        region: International subhumid reference; not calibrated for the named Karnataka
+          districts
+    kc_mid:
+      enabled: true
+      value: 1.2
+      unit: dimensionless
+      reference_only: true
+      reason: Unadjusted FAO reference coefficient for non-stressed well-managed crops;
+        wetting frequency and climate require local adjustment. Tomato mid assumes
+        no tall-staked crop adjustment. Paddy initial assumes the standing-water/subhumid
+        reference regime.
+      citation:
+        title: 'Crop Evapotranspiration: Guidelines for Computing Crop Water Requirements
+          (FAO Irrigation and Drainage Paper 56)'
+        publisher: Food and Agriculture Organization of the United Nations
+        url: https://www.fao.org/4/x0490e/x0490e0b.htm
+        locator: Table 12, Rice, mid column
+        statement: Unadjusted FAO reference coefficient for non-stressed well-managed
+          crops; wetting frequency and climate require local adjustment. Tomato mid
+          assumes no tall-staked crop adjustment. Paddy initial assumes the standing-water/subhumid
+          reference regime.
+        number_as_written: '1.20'
+        region: International subhumid reference; not calibrated for the named Karnataka
+          districts
+    kc_end:
+      enabled: false
+      value: null
+      citation: null
+      reason: Table 12 end value is 0.90-0.60; no endpoint selected.
+    days_initial:
+      enabled: false
+      value: null
+      citation: null
+      reason: Table 11 has multiple regional/seasonal examples; none selected as a
+        default for the target districts. Use an explicitly supplied observed stage
+        interval.
+    days_development:
+      enabled: false
+      value: null
+      citation: null
+      reason: Table 11 has multiple regional/seasonal examples; none selected as a
+        default for the target districts. Use an explicitly supplied observed stage
+        interval.
+    days_mid:
+      enabled: false
+      value: null
+      citation: null
+      reason: Table 11 has multiple regional/seasonal examples; none selected as a
+        default for the target districts. Use an explicitly supplied observed stage
+        interval.
+    days_late:
+      enabled: false
+      value: null
+      citation: null
+      reason: Table 11 has multiple regional/seasonal examples; none selected as a
+        default for the target districts. Use an explicitly supplied observed stage
+        interval.
+    sowing_window:
+      enabled: true
+      value: June 3rd week – September 2nd week
+      unit: calendar_window
+      reference_only: true
+      districts:
+      - Kolar
+      reason: Kharif rainfed historical calendar reference only. Week bounds are not
+        converted to invented dates; onset and soil readiness remain unverified.
+      citation:
+        title: 'Agriculture Contingency Plan for District: Kolar'
+        publisher: ICAR-CRIDA district contingency plan; Agricultural Research Station,
+          Chintamani (UAS Bengaluru)
+        url: https://www.icar-crida.res.in/CP-2012/statewiseplans/Karnataka%20(Pdf)/GKVK,%20Bangalore/KAR15-KOLAR%2031.03.2011.pdf
+        locator: Section 1.12, normal sowing-window table, Kharif-Rainfed row, Paddy
+          column; printed page not reliably recoverable from text extraction
+        statement: Normal sowing period for this crop under Kharif rainfed conditions
+          in Kolar.
+        number_as_written: June 3rd week – September 2nd week
+        region: Kolar only; historical 2011 document
+    onset_rainfall_mm:
+      enabled: false
+      value: null
+      citation: null
+      reason: No verified numeric onset criterion (rainfall amount, accumulation period
+        and subsequent dry-spell condition) found for this crop/district; monsoon
+        onset dates are not rainfall thresholds.
+  maize:
+    gdd_base_c: *id001
+    heat_above_c: *id001
+    frost_below_c: *id001
+    waterlogging_excess_mm: *id001
+    sowing_months: *id001
+    sowing_min_c: *id001
+    sowing_max_c: *id001
+    kc_initial:
+      enabled: true
+      value: 0.3
+      unit: dimensionless
+      reference_only: true
+      reason: Unadjusted FAO reference coefficient for non-stressed well-managed crops;
+        wetting frequency and climate require local adjustment. Tomato mid assumes
+        no tall-staked crop adjustment. Paddy initial assumes the standing-water/subhumid
+        reference regime.
+      citation:
+        title: 'Crop Evapotranspiration: Guidelines for Computing Crop Water Requirements
+          (FAO Irrigation and Drainage Paper 56)'
+        publisher: Food and Agriculture Organization of the United Nations
+        url: https://www.fao.org/4/x0490e/x0490e0b.htm
+        locator: Table 12, i. Cereals group initial column
+        statement: Unadjusted FAO reference coefficient for non-stressed well-managed
+          crops; wetting frequency and climate require local adjustment. Tomato mid
+          assumes no tall-staked crop adjustment. Paddy initial assumes the standing-water/subhumid
+          reference regime.
+        number_as_written: '0.3'
+        region: International subhumid reference; not calibrated for the named Karnataka
+          districts
+    kc_mid:
+      enabled: true
+      value: 1.2
+      unit: dimensionless
+      reference_only: true
+      reason: Unadjusted FAO reference coefficient for non-stressed well-managed crops;
+        wetting frequency and climate require local adjustment. Tomato mid assumes
+        no tall-staked crop adjustment. Paddy initial assumes the standing-water/subhumid
+        reference regime.
+      citation:
+        title: 'Crop Evapotranspiration: Guidelines for Computing Crop Water Requirements
+          (FAO Irrigation and Drainage Paper 56)'
+        publisher: Food and Agriculture Organization of the United Nations
+        url: https://www.fao.org/4/x0490e/x0490e0b.htm
+        locator: Table 12, Maize, Field (grain), mid column
+        statement: Unadjusted FAO reference coefficient for non-stressed well-managed
+          crops; wetting frequency and climate require local adjustment. Tomato mid
+          assumes no tall-staked crop adjustment. Paddy initial assumes the standing-water/subhumid
+          reference regime.
+        number_as_written: '1.20'
+        region: International subhumid reference; not calibrated for the named Karnataka
+          districts
+    kc_end:
+      enabled: false
+      value: null
+      citation: null
+      reason: Table 12 end value is 0.60-0.35 with harvest-condition footnote 11;
+        no endpoint selected.
+    days_initial:
+      enabled: true
+      value: 20
+      unit: day
+      reference_only: true
+      reason: Example stage duration, not an observed phenology boundary or a Karnataka
+        sowing recommendation.
+      citation:
+        title: 'Crop Evapotranspiration: Guidelines for Computing Crop Water Requirements
+          (FAO Irrigation and Drainage Paper 56)'
+        publisher: Food and Agriculture Organization of the United Nations
+        url: https://www.fao.org/4/x0490e/x0490e0b.htm
+        locator: Table 11, Maize (grain), October, India (dry, cool), days_initial
+        statement: Example stage duration, not an observed phenology boundary or a
+          Karnataka sowing recommendation.
+        number_as_written: '20'
+        region: India (dry, cool), October; not district-calibrated
+    days_development:
+      enabled: true
+      value: 35
+      unit: day
+      reference_only: true
+      reason: Example stage duration, not an observed phenology boundary or a Karnataka
+        sowing recommendation.
+      citation:
+        title: 'Crop Evapotranspiration: Guidelines for Computing Crop Water Requirements
+          (FAO Irrigation and Drainage Paper 56)'
+        publisher: Food and Agriculture Organization of the United Nations
+        url: https://www.fao.org/4/x0490e/x0490e0b.htm
+        locator: Table 11, Maize (grain), October, India (dry, cool), days_development
+        statement: Example stage duration, not an observed phenology boundary or a
+          Karnataka sowing recommendation.
+        number_as_written: '35'
+        region: India (dry, cool), October; not district-calibrated
+    days_mid:
+      enabled: true
+      value: 40
+      unit: day
+      reference_only: true
+      reason: Example stage duration, not an observed phenology boundary or a Karnataka
+        sowing recommendation.
+      citation:
+        title: 'Crop Evapotranspiration: Guidelines for Computing Crop Water Requirements
+          (FAO Irrigation and Drainage Paper 56)'
+        publisher: Food and Agriculture Organization of the United Nations
+        url: https://www.fao.org/4/x0490e/x0490e0b.htm
+        locator: Table 11, Maize (grain), October, India (dry, cool), days_mid
+        statement: Example stage duration, not an observed phenology boundary or a
+          Karnataka sowing recommendation.
+        number_as_written: '40'
+        region: India (dry, cool), October; not district-calibrated
+    days_late:
+      enabled: true
+      value: 30
+      unit: day
+      reference_only: true
+      reason: Example stage duration, not an observed phenology boundary or a Karnataka
+        sowing recommendation.
+      citation:
+        title: 'Crop Evapotranspiration: Guidelines for Computing Crop Water Requirements
+          (FAO Irrigation and Drainage Paper 56)'
+        publisher: Food and Agriculture Organization of the United Nations
+        url: https://www.fao.org/4/x0490e/x0490e0b.htm
+        locator: Table 11, Maize (grain), October, India (dry, cool), days_late
+        statement: Example stage duration, not an observed phenology boundary or a
+          Karnataka sowing recommendation.
+        number_as_written: '30'
+        region: India (dry, cool), October; not district-calibrated
+    sowing_window:
+      enabled: true
+      value: May 4th week – September 2nd week
+      unit: calendar_window
+      reference_only: true
+      districts:
+      - Kolar
+      reason: Kharif rainfed historical calendar reference only. Week bounds are not
+        converted to invented dates; onset and soil readiness remain unverified.
+      citation:
+        title: 'Agriculture Contingency Plan for District: Kolar'
+        publisher: ICAR-CRIDA district contingency plan; Agricultural Research Station,
+          Chintamani (UAS Bengaluru)
+        url: https://www.icar-crida.res.in/CP-2012/statewiseplans/Karnataka%20(Pdf)/GKVK,%20Bangalore/KAR15-KOLAR%2031.03.2011.pdf
+        locator: Section 1.12, normal sowing-window table, Kharif-Rainfed row, Maize
+          column; printed page not reliably recoverable from text extraction
+        statement: Normal sowing period for this crop under Kharif rainfed conditions
+          in Kolar.
+        number_as_written: May 4th week – September 2nd week
+        region: Kolar only; historical 2011 document
+    onset_rainfall_mm:
+      enabled: false
+      value: null
+      citation: null
+      reason: No verified numeric onset criterion (rainfall amount, accumulation period
+        and subsequent dry-spell condition) found for this crop/district; monsoon
+        onset dates are not rainfall thresholds.
+  tur:
+    gdd_base_c: *id001
+    heat_above_c: *id001
+    frost_below_c: *id001
+    waterlogging_excess_mm: *id001
+    sowing_months: *id001
+    sowing_min_c: *id001
+    sowing_max_c: *id001
+    kc_initial:
+      enabled: false
+      value: null
+      citation: null
+      reason: FAO-56 generic Millet or Pulses rows do not verify finger millet or
+        pigeon pea specifically; no substitution applied.
+    kc_mid:
+      enabled: false
+      value: null
+      citation: null
+      reason: FAO-56 generic Millet or Pulses rows do not verify finger millet or
+        pigeon pea specifically; no substitution applied.
+    kc_end:
+      enabled: false
+      value: null
+      citation: null
+      reason: FAO-56 generic Millet or Pulses rows do not verify finger millet or
+        pigeon pea specifically; no substitution applied.
+    days_initial:
+      enabled: false
+      value: null
+      citation: null
+      reason: FAO-56 generic Millet or Pulses rows do not verify finger millet or
+        pigeon pea specifically; no substitution applied.
+    days_development:
+      enabled: false
+      value: null
+      citation: null
+      reason: FAO-56 generic Millet or Pulses rows do not verify finger millet or
+        pigeon pea specifically; no substitution applied.
+    days_mid:
+      enabled: false
+      value: null
+      citation: null
+      reason: FAO-56 generic Millet or Pulses rows do not verify finger millet or
+        pigeon pea specifically; no substitution applied.
+    days_late:
+      enabled: false
+      value: null
+      citation: null
+      reason: FAO-56 generic Millet or Pulses rows do not verify finger millet or
+        pigeon pea specifically; no substitution applied.
+    sowing_window:
+      enabled: true
+      value: May 4th week – July 2nd week
+      unit: calendar_window
+      reference_only: true
+      districts:
+      - Kolar
+      reason: Kharif rainfed historical calendar reference only. Week bounds are not
+        converted to invented dates; onset and soil readiness remain unverified.
+      citation:
+        title: 'Agriculture Contingency Plan for District: Kolar'
+        publisher: ICAR-CRIDA district contingency plan; Agricultural Research Station,
+          Chintamani (UAS Bengaluru)
+        url: https://www.icar-crida.res.in/CP-2012/statewiseplans/Karnataka%20(Pdf)/GKVK,%20Bangalore/KAR15-KOLAR%2031.03.2011.pdf
+        locator: Section 1.12, normal sowing-window table, Kharif-Rainfed row, Redgram
+          column; printed page not reliably recoverable from text extraction
+        statement: Normal sowing period for this crop under Kharif rainfed conditions
+          in Kolar.
+        number_as_written: May 4th week – July 2nd week
+        region: Kolar only; historical 2011 document
+    onset_rainfall_mm:
+      enabled: false
+      value: null
+      citation: null
+      reason: No verified numeric onset criterion (rainfall amount, accumulation period
+        and subsequent dry-spell condition) found for this crop/district; monsoon
+        onset dates are not rainfall thresholds.
+  groundnut:
+    gdd_base_c: *id001
+    heat_above_c: *id001
+    frost_below_c: *id001
+    waterlogging_excess_mm: *id001
+    sowing_months: *id001
+    sowing_min_c: *id001
+    sowing_max_c: *id001
+    kc_initial:
+      enabled: true
+      value: 0.4
+      unit: dimensionless
+      reference_only: true
+      reason: Unadjusted FAO reference coefficient for non-stressed well-managed crops;
+        wetting frequency and climate require local adjustment. Tomato mid assumes
+        no tall-staked crop adjustment. Paddy initial assumes the standing-water/subhumid
+        reference regime.
+      citation:
+        title: 'Crop Evapotranspiration: Guidelines for Computing Crop Water Requirements
+          (FAO Irrigation and Drainage Paper 56)'
+        publisher: Food and Agriculture Organization of the United Nations
+        url: https://www.fao.org/4/x0490e/x0490e0b.htm
+        locator: Table 12, e. Legumes group initial column
+        statement: Unadjusted FAO reference coefficient for non-stressed well-managed
+          crops; wetting frequency and climate require local adjustment. Tomato mid
+          assumes no tall-staked crop adjustment. Paddy initial assumes the standing-water/subhumid
+          reference regime.
+        number_as_written: '0.4'
+        region: International subhumid reference; not calibrated for the named Karnataka
+          districts
+    kc_mid:
+      enabled: true
+      value: 1.15
+      unit: dimensionless
+      reference_only: true
+      reason: Unadjusted FAO reference coefficient for non-stressed well-managed crops;
+        wetting frequency and climate require local adjustment. Tomato mid assumes
+        no tall-staked crop adjustment. Paddy initial assumes the standing-water/subhumid
+        reference regime.
+      citation:
+        title: 'Crop Evapotranspiration: Guidelines for Computing Crop Water Requirements
+          (FAO Irrigation and Drainage Paper 56)'
+        publisher: Food and Agriculture Organization of the United Nations
+        url: https://www.fao.org/4/x0490e/x0490e0b.htm
+        locator: Table 12, Groundnut (Peanut), mid column
+        statement: Unadjusted FAO reference coefficient for non-stressed well-managed
+          crops; wetting frequency and climate require local adjustment. Tomato mid
+          assumes no tall-staked crop adjustment. Paddy initial assumes the standing-water/subhumid
+          reference regime.
+        number_as_written: '1.15'
+        region: International subhumid reference; not calibrated for the named Karnataka
+          districts
+    kc_end:
+      enabled: true
+      value: 0.6
+      unit: dimensionless
+      reference_only: true
+      reason: Unadjusted FAO reference coefficient for non-stressed well-managed crops;
+        wetting frequency and climate require local adjustment. Tomato mid assumes
+        no tall-staked crop adjustment. Paddy initial assumes the standing-water/subhumid
+        reference regime.
+      citation:
+        title: 'Crop Evapotranspiration: Guidelines for Computing Crop Water Requirements
+          (FAO Irrigation and Drainage Paper 56)'
+        publisher: Food and Agriculture Organization of the United Nations
+        url: https://www.fao.org/4/x0490e/x0490e0b.htm
+        locator: Table 12, Groundnut (Peanut), end column
+        statement: Unadjusted FAO reference coefficient for non-stressed well-managed
+          crops; wetting frequency and climate require local adjustment. Tomato mid
+          assumes no tall-staked crop adjustment. Paddy initial assumes the standing-water/subhumid
+          reference regime.
+        number_as_written: '0.60'
+        region: International subhumid reference; not calibrated for the named Karnataka
+          districts
+    days_initial:
+      enabled: false
+      value: null
+      citation: null
+      reason: Table 11 has multiple regional/seasonal examples; none selected as a
+        default for the target districts. Use an explicitly supplied observed stage
+        interval.
+    days_development:
+      enabled: false
+      value: null
+      citation: null
+      reason: Table 11 has multiple regional/seasonal examples; none selected as a
+        default for the target districts. Use an explicitly supplied observed stage
+        interval.
+    days_mid:
+      enabled: false
+      value: null
+      citation: null
+      reason: Table 11 has multiple regional/seasonal examples; none selected as a
+        default for the target districts. Use an explicitly supplied observed stage
+        interval.
+    days_late:
+      enabled: false
+      value: null
+      citation: null
+      reason: Table 11 has multiple regional/seasonal examples; none selected as a
+        default for the target districts. Use an explicitly supplied observed stage
+        interval.
+    sowing_window:
+      enabled: false
+      value: null
+      citation: null
+      reason: Tumkur section 1.12 prints Iune 1st week to July end. The month text
+        is defective; left disabled rather than silently correcting it.
+    onset_rainfall_mm:
+      enabled: false
+      value: null
+      citation: null
+      reason: No verified numeric onset criterion (rainfall amount, accumulation period
+        and subsequent dry-spell condition) found for this crop/district; monsoon
+        onset dates are not rainfall thresholds.
+  tomato:
+    gdd_base_c: *id001
+    heat_above_c: *id001
+    frost_below_c: *id001
+    waterlogging_excess_mm: *id001
+    sowing_months: *id001
+    sowing_min_c: *id001
+    sowing_max_c: *id001
+    kc_initial:
+      enabled: true
+      value: 0.6
+      unit: dimensionless
+      reference_only: true
+      reason: Unadjusted FAO reference coefficient for non-stressed well-managed crops;
+        wetting frequency and climate require local adjustment. Tomato mid assumes
+        no tall-staked crop adjustment. Paddy initial assumes the standing-water/subhumid
+        reference regime.
+      citation:
+        title: 'Crop Evapotranspiration: Guidelines for Computing Crop Water Requirements
+          (FAO Irrigation and Drainage Paper 56)'
+        publisher: Food and Agriculture Organization of the United Nations
+        url: https://www.fao.org/4/x0490e/x0490e0b.htm
+        locator: Table 12, b. Solanaceae group initial column
+        statement: Unadjusted FAO reference coefficient for non-stressed well-managed
+          crops; wetting frequency and climate require local adjustment. Tomato mid
+          assumes no tall-staked crop adjustment. Paddy initial assumes the standing-water/subhumid
+          reference regime.
+        number_as_written: '0.6'
+        region: International subhumid reference; not calibrated for the named Karnataka
+          districts
+    kc_mid:
+      enabled: true
+      value: 1.15
+      unit: dimensionless
+      reference_only: true
+      reason: Unadjusted FAO reference coefficient for non-stressed well-managed crops;
+        wetting frequency and climate require local adjustment. Tomato mid assumes
+        no tall-staked crop adjustment. Paddy initial assumes the standing-water/subhumid
+        reference regime.
+      citation:
+        title: 'Crop Evapotranspiration: Guidelines for Computing Crop Water Requirements
+          (FAO Irrigation and Drainage Paper 56)'
+        publisher: Food and Agriculture Organization of the United Nations
+        url: https://www.fao.org/4/x0490e/x0490e0b.htm
+        locator: Table 12, Tomato, mid column, footnote 2
+        statement: Unadjusted FAO reference coefficient for non-stressed well-managed
+          crops; wetting frequency and climate require local adjustment. Tomato mid
+          assumes no tall-staked crop adjustment. Paddy initial assumes the standing-water/subhumid
+          reference regime.
+        number_as_written: '1.15'
+        region: International subhumid reference; not calibrated for the named Karnataka
+          districts
+    kc_end:
+      enabled: false
+      value: null
+      citation: null
+      reason: Table 12 end value is 0.70-0.90; harvest/management selection is unresolved.
+    days_initial:
+      enabled: false
+      value: null
+      citation: null
+      reason: Table 11 has multiple regional/seasonal examples; none selected as a
+        default for the target districts. Use an explicitly supplied observed stage
+        interval.
+    days_development:
+      enabled: false
+      value: null
+      citation: null
+      reason: Table 11 has multiple regional/seasonal examples; none selected as a
+        default for the target districts. Use an explicitly supplied observed stage
+        interval.
+    days_mid:
+      enabled: false
+      value: null
+      citation: null
+      reason: Table 11 has multiple regional/seasonal examples; none selected as a
+        default for the target districts. Use an explicitly supplied observed stage
+        interval.
+    days_late:
+      enabled: false
+      value: null
+      citation: null
+      reason: Table 11 has multiple regional/seasonal examples; none selected as a
+        default for the target districts. Use an explicitly supplied observed stage
+        interval.
+    sowing_window:
+      enabled: false
+      value: null
+      citation: null
+      reason: No unambiguous crop-specific and locally applicable value verified for
+        this parameter.
+    onset_rainfall_mm:
+      enabled: false
+      value: null
+      citation: null
+      reason: No verified numeric onset criterion (rainfall amount, accumulation period
+        and subsequent dry-spell condition) found for this crop/district; monsoon
+        onset dates are not rainfall thresholds.

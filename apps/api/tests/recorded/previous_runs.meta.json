@@ -1,0 +1,7 @@
+{
+  "request_url": "https://previous-runs-api.open-meteo.com/v1/forecast?latitude=12.97&longitude=77.59&start_date=2026-08-26&end_date=2026-10-25&timezone=UTC&timeformat=unixtime&temperature_unit=celsius&precipitation_unit=mm&hourly=temperature_2m_previous_day1%2Cprecipitation_previous_day1%2Ctemperature_2m_previous_day2%2Cprecipitation_previous_day2%2Ctemperature_2m_previous_day3%2Cprecipitation_previous_day3%2Ctemperature_2m_previous_day4%2Cprecipitation_previous_day4%2Ctemperature_2m_previous_day5%2Cprecipitation_previous_day5%2Ctemperature_2m_previous_day6%2Cprecipitation_previous_day6%2Ctemperature_2m_previous_day7%2Cprecipitation_previous_day7&models=gfs_global",
+  "fetched_at": "2026-10-30T18:34:22.748907+00:00",
+  "start_date": "2026-08-26",
+  "end_date": "2026-10-24",
+  "source_end_date": "2026-10-25"
+}

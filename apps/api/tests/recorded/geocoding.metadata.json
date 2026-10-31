@@ -1,0 +1,5 @@
+{
+  "url": "https://geocoding-api.open-meteo.com/v1/search?name=Kolar&count=5&language=en&format=json&countryCode=IN",
+  "fetched_at": "2026-10-30T16:42:06.790412+00:00",
+  "purpose": "Isolated recorded-response tests only"
+}

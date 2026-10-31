@@ -1,0 +1,3083 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Sowcast",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Health Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ready": {
+      "get": {
+        "summary": "Ready",
+        "operationId": "ready_ready_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Ready Ready Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/sources": {
+      "get": {
+        "summary": "Source Health",
+        "operationId": "source_health_health_sources_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Source Health Health Sources Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/places": {
+      "get": {
+        "summary": "Places",
+        "operationId": "places_v1_places_get",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 120,
+              "title": "Name"
+            }
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "en",
+                "hi",
+                "kn",
+                "te",
+                "ta",
+                "mr"
+              ],
+              "type": "string",
+              "default": "en",
+              "title": "Language"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeocodingEvidence"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/evidence/flood": {
+      "get": {
+        "summary": "Flood",
+        "operationId": "flood_v1_evidence_flood_get",
+        "parameters": [
+          {
+            "name": "latitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "maximum": 90,
+              "minimum": -90,
+              "title": "Latitude"
+            }
+          },
+          {
+            "name": "longitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "maximum": 180,
+              "minimum": -180,
+              "title": "Longitude"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FloodEvidence"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/evidence/power": {
+      "get": {
+        "summary": "Power",
+        "operationId": "power_v1_evidence_power_get",
+        "parameters": [
+          {
+            "name": "latitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "maximum": 90,
+              "minimum": -90,
+              "title": "Latitude"
+            }
+          },
+          {
+            "name": "longitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "maximum": 180,
+              "minimum": -180,
+              "title": "Longitude"
+            }
+          },
+          {
+            "name": "start_date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Start Date"
+            }
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "End Date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PowerEvidence"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/backtests": {
+      "get": {
+        "summary": "Backtest",
+        "operationId": "backtest_v1_backtests_get",
+        "parameters": [
+          {
+            "name": "latitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "maximum": 90,
+              "minimum": -90,
+              "title": "Latitude"
+            }
+          },
+          {
+            "name": "longitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "maximum": 180,
+              "minimum": -180,
+              "title": "Longitude"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BacktestResult"
+                }
+              }
+            }
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "/v1/evidence/soil": {
+      "get": {
+        "summary": "Soil",
+        "operationId": "soil_v1_evidence_soil_get",
+        "parameters": [
+          {
+            "name": "latitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "maximum": 90,
+              "minimum": -90,
+              "title": "Latitude"
+            }
+          },
+          {
+            "name": "longitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "maximum": 180,
+              "minimum": -180,
+              "title": "Longitude"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SoilEvidence"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/evidence/mandi": {
+      "get": {
+        "summary": "Mandi",
+        "operationId": "mandi_v1_evidence_mandi_get",
+        "parameters": [
+          {
+            "name": "district",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "title": "District"
+            }
+          },
+          {
+            "name": "commodity",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "title": "Commodity"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MandiEvidence"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/evidence/weather": {
+      "get": {
+        "summary": "Weather",
+        "operationId": "weather_v1_evidence_weather_get",
+        "parameters": [
+          {
+            "name": "latitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "maximum": 90,
+              "minimum": -90,
+              "title": "Latitude"
+            }
+          },
+          {
+            "name": "longitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "maximum": 180,
+              "minimum": -180,
+              "title": "Longitude"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Forecast"
+                }
+              }
+            }
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "/v1/plans": {
+      "post": {
+        "summary": "Plan",
+        "operationId": "plan_v1_plans_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Plan"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/chat": {
+      "post": {
+        "summary": "Chat",
+        "operationId": "chat_v1_chat_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Answer"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/traces/{trace_id}": {
+      "get": {
+        "summary": "Trace",
+        "operationId": "trace_v1_traces__trace_id__get",
+        "parameters": [
+          {
+            "name": "trace_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Trace Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Trace V1 Traces  Trace Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Action": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "inspect_heat_exposure",
+              "review_water_balance",
+              "review_evidence"
+            ],
+            "title": "Kind"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "explanation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Explanation"
+          },
+          "explanation_status": {
+            "type": "string",
+            "enum": [
+              "unavailable",
+              "verified"
+            ],
+            "title": "Explanation Status",
+            "default": "unavailable"
+          },
+          "explanation_sources": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Explanation Sources",
+            "default": []
+          },
+          "rule_version": {
+            "type": "string",
+            "title": "Rule Version"
+          },
+          "metrics": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/RuleResult"
+            },
+            "type": "object",
+            "title": "Metrics"
+          },
+          "inputs": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceReference"
+            },
+            "type": "array",
+            "title": "Inputs"
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/Citation"
+            },
+            "type": "array",
+            "title": "Citations"
+          },
+          "water_balance": {
+            "$ref": "#/components/schemas/CropWaterBalance"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date",
+          "kind",
+          "reason",
+          "rule_version",
+          "metrics",
+          "inputs",
+          "citations",
+          "water_balance"
+        ],
+        "title": "Action"
+      },
+      "AgronomyContext": {
+        "properties": {
+          "district": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "Bengaluru Rural",
+                  "Kolar",
+                  "Tumakuru",
+                  "Chikkaballapura",
+                  "Ramanagara"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "District"
+          },
+          "allow_fao_reference": {
+            "type": "boolean",
+            "title": "Allow Fao Reference",
+            "default": false
+          },
+          "planting_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Planting Date"
+          },
+          "water_stage": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "initial",
+                  "mid",
+                  "end"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Water Stage"
+          },
+          "stage_valid_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage Valid From"
+          },
+          "stage_valid_until": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage Valid Until"
+          },
+          "paddy_standing_water": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paddy Standing Water"
+          },
+          "tomato_tall_staked": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tomato Tall Staked"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "AgronomyContext"
+      },
+      "Answer": {
+        "properties": {
+          "api_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Api Version",
+            "default": "1.0"
+          },
+          "trace_id": {
+            "type": "string",
+            "title": "Trace Id"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "en",
+              "hi",
+              "kn",
+              "te",
+              "ta",
+              "mr"
+            ],
+            "title": "Language"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "verified",
+              "unavailable"
+            ],
+            "title": "Status"
+          },
+          "claims": {
+            "items": {
+              "$ref": "#/components/schemas/Claim"
+            },
+            "type": "array",
+            "title": "Claims",
+            "default": []
+          },
+          "facts": {
+            "items": {
+              "$ref": "#/components/schemas/Fact"
+            },
+            "type": "array",
+            "title": "Facts",
+            "default": []
+          },
+          "formatted_facts": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Formatted Facts"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          },
+          "plan": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Plan"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "trace_id",
+          "language",
+          "status",
+          "note"
+        ],
+        "title": "Answer"
+      },
+      "BacktestResult": {
+        "properties": {
+          "api_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Api Version",
+            "default": "1.0"
+          },
+          "methodology_version": {
+            "type": "string",
+            "const": "1.1.0",
+            "title": "Methodology Version",
+            "default": "1.1.0"
+          },
+          "location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Start Date"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date",
+            "title": "End Date"
+          },
+          "computed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Computed At"
+          },
+          "is_stale": {
+            "type": "boolean",
+            "title": "Is Stale",
+            "default": false
+          },
+          "data_status": {
+            "type": "string",
+            "enum": [
+              "complete",
+              "partial",
+              "empty"
+            ],
+            "title": "Data Status"
+          },
+          "forecast_model": {
+            "type": "string",
+            "const": "gfs_global",
+            "title": "Forecast Model",
+            "default": "gfs_global"
+          },
+          "reference_model": {
+            "type": "string",
+            "const": "era5",
+            "title": "Reference Model",
+            "default": "era5"
+          },
+          "day_basis": {
+            "type": "string",
+            "const": "UTC",
+            "title": "Day Basis",
+            "default": "UTC"
+          },
+          "expected_hours": {
+            "type": "integer",
+            "const": 1440,
+            "title": "Expected Hours",
+            "default": 1440
+          },
+          "expected_days": {
+            "type": "integer",
+            "const": 60,
+            "title": "Expected Days",
+            "default": 60
+          },
+          "rain_event": {
+            "type": "string",
+            "title": "Rain Event",
+            "default": "Daily precipitation strictly greater than 0 mm."
+          },
+          "uncertainty_note": {
+            "type": "string",
+            "title": "Uncertainty Note"
+          },
+          "scores": {
+            "items": {
+              "$ref": "#/components/schemas/LeadScore"
+            },
+            "type": "array",
+            "title": "Scores"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/HistorySource"
+            },
+            "type": "array",
+            "title": "Sources"
+          },
+          "limitation": {
+            "type": "string",
+            "title": "Limitation",
+            "default": "GFS fixed-lead forecasts compared with ERA5 gridded reanalysis, not plot observations. This does not measure the live best-match forecast blend, crop outcomes or alert skill. The source grids differ. Rain days require all 24 UTC hourly values in both series. The window ends six days before today to allow ERA5 publication."
+          }
+        },
+        "type": "object",
+        "required": [
+          "location",
+          "start_date",
+          "end_date",
+          "computed_at",
+          "data_status",
+          "uncertainty_note",
+          "scores",
+          "sources"
+        ],
+        "title": "BacktestResult"
+      },
+      "ChatRequest": {
+        "properties": {
+          "question": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Question"
+          },
+          "plot": {
+            "$ref": "#/components/schemas/PlanRequest"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "en",
+              "hi",
+              "kn",
+              "te",
+              "ta",
+              "mr"
+            ],
+            "title": "Language",
+            "default": "en"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "question",
+          "plot"
+        ],
+        "title": "ChatRequest"
+      },
+      "Citation": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "publisher": {
+            "type": "string",
+            "title": "Publisher"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "locator": {
+            "type": "string",
+            "title": "Locator"
+          },
+          "statement": {
+            "type": "string",
+            "title": "Statement"
+          },
+          "number_as_written": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Number As Written"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "publisher",
+          "url",
+          "locator",
+          "statement"
+        ],
+        "title": "Citation"
+      },
+      "Claim": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 1200,
+            "minLength": 1,
+            "title": "Text"
+          },
+          "evidence_id": {
+            "type": "string",
+            "title": "Evidence Id"
+          },
+          "date": {
+            "type": "string",
+            "title": "Date"
+          },
+          "latitude": {
+            "type": "number",
+            "title": "Latitude"
+          },
+          "longitude": {
+            "type": "number",
+            "title": "Longitude"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "text",
+          "evidence_id",
+          "date",
+          "latitude",
+          "longitude"
+        ],
+        "title": "Claim"
+      },
+      "CropWaterBalance": {
+        "properties": {
+          "coefficient": {
+            "$ref": "#/components/schemas/RuleResult"
+          },
+          "crop_et_mm": {
+            "$ref": "#/components/schemas/RuleResult"
+          },
+          "rainfall_shortfall_mm": {
+            "$ref": "#/components/schemas/RuleResult"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage"
+          },
+          "stage_basis": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage Basis"
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/Citation"
+            },
+            "type": "array",
+            "title": "Citations",
+            "default": []
+          },
+          "warning": {
+            "type": "string",
+            "title": "Warning",
+            "default": "Unadjusted FAO estimate, not locally calibrated crop need or an irrigation dose. Gross rain is not effective rain; soil storage, runoff and irrigation are excluded."
+          }
+        },
+        "type": "object",
+        "required": [
+          "coefficient",
+          "crop_et_mm",
+          "rainfall_shortfall_mm"
+        ],
+        "title": "CropWaterBalance"
+      },
+      "DisabledRule": {
+        "properties": {
+          "parameter": {
+            "type": "string",
+            "title": "Parameter"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "parameter",
+          "reason"
+        ],
+        "title": "DisabledRule"
+      },
+      "ErrorDetail": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "retryable": {
+            "type": "boolean",
+            "title": "Retryable"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "source",
+          "retryable",
+          "request_id"
+        ],
+        "title": "ErrorDetail"
+      },
+      "ErrorEnvelope": {
+        "properties": {
+          "api_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Api Version",
+            "default": "1.0"
+          },
+          "error": {
+            "$ref": "#/components/schemas/ErrorDetail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "title": "ErrorEnvelope"
+      },
+      "EvidenceReference": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "request_url": {
+            "type": "string",
+            "title": "Request Url"
+          },
+          "fetched_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Fetched At"
+          },
+          "is_stale": {
+            "type": "boolean",
+            "title": "Is Stale"
+          },
+          "field": {
+            "type": "string",
+            "title": "Field"
+          },
+          "valid_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Valid At"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "unit": {
+            "type": "string",
+            "title": "Unit"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source",
+          "request_url",
+          "fetched_at",
+          "is_stale",
+          "field",
+          "valid_at",
+          "value",
+          "unit"
+        ],
+        "title": "EvidenceReference"
+      },
+      "Fact": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "date": {
+            "type": "string",
+            "title": "Date"
+          },
+          "latitude": {
+            "type": "number",
+            "title": "Latitude"
+          },
+          "longitude": {
+            "type": "number",
+            "title": "Longitude"
+          },
+          "value": {
+            "type": "number",
+            "title": "Value"
+          },
+          "unit": {
+            "type": "string",
+            "title": "Unit"
+          },
+          "source_url": {
+            "type": "string",
+            "title": "Source Url"
+          },
+          "fetched_at": {
+            "type": "string",
+            "title": "Fetched At"
+          },
+          "window_start": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window Start"
+          },
+          "window_end": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window End"
+          },
+          "supporting_urls": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Supporting Urls",
+            "default": []
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "date",
+          "latitude",
+          "longitude",
+          "value",
+          "unit",
+          "source_url",
+          "fetched_at"
+        ],
+        "title": "Fact"
+      },
+      "FloodEvidence": {
+        "properties": {
+          "api_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Api Version",
+            "default": "1.0"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "attribution_url": {
+            "type": "string",
+            "title": "Attribution Url"
+          },
+          "attribution_text": {
+            "type": "string",
+            "title": "Attribution Text"
+          },
+          "licence_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Licence Url"
+          },
+          "modifications": {
+            "type": "string",
+            "title": "Modifications"
+          },
+          "request_url": {
+            "type": "string",
+            "title": "Request Url"
+          },
+          "fetched_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Fetched At"
+          },
+          "is_stale": {
+            "type": "boolean",
+            "title": "Is Stale",
+            "default": false
+          },
+          "data_status": {
+            "type": "string",
+            "enum": [
+              "complete",
+              "partial",
+              "empty"
+            ],
+            "title": "Data Status",
+            "default": "complete"
+          },
+          "missing_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Reasons",
+            "default": []
+          },
+          "location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "grid_location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "daily": {
+            "$ref": "#/components/schemas/Series"
+          },
+          "original_unit": {
+            "type": "string",
+            "title": "Original Unit"
+          },
+          "limitation": {
+            "type": "string",
+            "title": "Limitation",
+            "default": "Modelled river discharge; not plot inundation or a calibrated flood-risk level."
+          }
+        },
+        "type": "object",
+        "required": [
+          "source",
+          "attribution_url",
+          "attribution_text",
+          "licence_url",
+          "modifications",
+          "request_url",
+          "fetched_at",
+          "location",
+          "grid_location",
+          "daily",
+          "original_unit"
+        ],
+        "title": "FloodEvidence"
+      },
+      "Forecast": {
+        "properties": {
+          "api_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Api Version",
+            "default": "1.0"
+          },
+          "source": {
+            "type": "string",
+            "const": "open_meteo_forecast",
+            "title": "Source",
+            "default": "open_meteo_forecast"
+          },
+          "attribution_url": {
+            "type": "string",
+            "title": "Attribution Url",
+            "default": "https://open-meteo.com/"
+          },
+          "attribution_text": {
+            "type": "string",
+            "title": "Attribution Text",
+            "default": "Weather data by Open-Meteo.com"
+          },
+          "licence_url": {
+            "type": "string",
+            "title": "Licence Url",
+            "default": "https://creativecommons.org/licenses/by/4.0/"
+          },
+          "modifications": {
+            "type": "string",
+            "title": "Modifications",
+            "default": "Fields selected and reorganized; timestamps converted to UTC ISO 8601."
+          },
+          "request_url": {
+            "type": "string",
+            "title": "Request Url"
+          },
+          "fetched_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Fetched At"
+          },
+          "is_stale": {
+            "type": "boolean",
+            "title": "Is Stale",
+            "default": false
+          },
+          "data_status": {
+            "type": "string",
+            "enum": [
+              "complete",
+              "partial",
+              "empty"
+            ],
+            "title": "Data Status",
+            "default": "complete"
+          },
+          "missing_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Reasons",
+            "default": []
+          },
+          "location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "grid_location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone"
+          },
+          "hourly": {
+            "$ref": "#/components/schemas/Series"
+          },
+          "daily": {
+            "$ref": "#/components/schemas/Series"
+          }
+        },
+        "type": "object",
+        "required": [
+          "request_url",
+          "fetched_at",
+          "location",
+          "grid_location",
+          "timezone",
+          "hourly",
+          "daily"
+        ],
+        "title": "Forecast"
+      },
+      "GeocodingEvidence": {
+        "properties": {
+          "api_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Api Version",
+            "default": "1.0"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "attribution_url": {
+            "type": "string",
+            "title": "Attribution Url"
+          },
+          "attribution_text": {
+            "type": "string",
+            "title": "Attribution Text"
+          },
+          "licence_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Licence Url"
+          },
+          "modifications": {
+            "type": "string",
+            "title": "Modifications"
+          },
+          "request_url": {
+            "type": "string",
+            "title": "Request Url"
+          },
+          "fetched_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Fetched At"
+          },
+          "is_stale": {
+            "type": "boolean",
+            "title": "Is Stale",
+            "default": false
+          },
+          "data_status": {
+            "type": "string",
+            "enum": [
+              "complete",
+              "partial",
+              "empty"
+            ],
+            "title": "Data Status",
+            "default": "complete"
+          },
+          "missing_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Reasons",
+            "default": []
+          },
+          "query": {
+            "type": "string",
+            "title": "Query"
+          },
+          "language": {
+            "type": "string",
+            "title": "Language"
+          },
+          "places": {
+            "items": {
+              "$ref": "#/components/schemas/Place"
+            },
+            "type": "array",
+            "title": "Places"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source",
+          "attribution_url",
+          "attribution_text",
+          "licence_url",
+          "modifications",
+          "request_url",
+          "fetched_at",
+          "query",
+          "language",
+          "places"
+        ],
+        "title": "GeocodingEvidence"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HistorySource": {
+        "properties": {
+          "api_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Api Version",
+            "default": "1.0"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "attribution_url": {
+            "type": "string",
+            "title": "Attribution Url"
+          },
+          "attribution_text": {
+            "type": "string",
+            "title": "Attribution Text"
+          },
+          "licence_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Licence Url"
+          },
+          "modifications": {
+            "type": "string",
+            "title": "Modifications"
+          },
+          "request_url": {
+            "type": "string",
+            "title": "Request Url"
+          },
+          "fetched_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Fetched At"
+          },
+          "is_stale": {
+            "type": "boolean",
+            "title": "Is Stale",
+            "default": false
+          },
+          "data_status": {
+            "type": "string",
+            "enum": [
+              "complete",
+              "partial",
+              "empty"
+            ],
+            "title": "Data Status",
+            "default": "complete"
+          },
+          "missing_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Reasons",
+            "default": []
+          },
+          "location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "grid_location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source",
+          "attribution_url",
+          "attribution_text",
+          "licence_url",
+          "modifications",
+          "request_url",
+          "fetched_at",
+          "location",
+          "grid_location",
+          "model"
+        ],
+        "title": "HistorySource"
+      },
+      "LeadScore": {
+        "properties": {
+          "lead_days": {
+            "type": "integer",
+            "title": "Lead Days"
+          },
+          "lead_hours": {
+            "type": "integer",
+            "title": "Lead Hours"
+          },
+          "temperature_mae_c": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Temperature Mae C"
+          },
+          "temperature_pairs": {
+            "type": "integer",
+            "title": "Temperature Pairs"
+          },
+          "temperature_missing_hours": {
+            "type": "integer",
+            "title": "Temperature Missing Hours"
+          },
+          "rain_correct_days": {
+            "type": "integer",
+            "title": "Rain Correct Days"
+          },
+          "rain_pairs": {
+            "type": "integer",
+            "title": "Rain Pairs"
+          },
+          "rain_missing_days": {
+            "type": "integer",
+            "title": "Rain Missing Days"
+          },
+          "rain_accuracy": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rain Accuracy"
+          },
+          "era5_rain_days": {
+            "type": "integer",
+            "title": "Era5 Rain Days"
+          },
+          "era5_rain_share": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Era5 Rain Share"
+          },
+          "majority_correct_days": {
+            "type": "integer",
+            "title": "Majority Correct Days"
+          },
+          "majority_accuracy": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Majority Accuracy"
+          },
+          "rain_definitions": {
+            "items": {
+              "$ref": "#/components/schemas/RainScore"
+            },
+            "type": "array",
+            "title": "Rain Definitions"
+          },
+          "rain_brier": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rain Brier"
+          },
+          "brier_reason": {
+            "type": "string",
+            "title": "Brier Reason",
+            "default": "No true precipitation probabilities are provided by these requests."
+          }
+        },
+        "type": "object",
+        "required": [
+          "lead_days",
+          "lead_hours",
+          "temperature_mae_c",
+          "temperature_pairs",
+          "temperature_missing_hours",
+          "rain_correct_days",
+          "rain_pairs",
+          "rain_missing_days",
+          "rain_accuracy",
+          "era5_rain_days",
+          "era5_rain_share",
+          "majority_correct_days",
+          "majority_accuracy",
+          "rain_definitions"
+        ],
+        "title": "LeadScore"
+      },
+      "Location": {
+        "properties": {
+          "latitude": {
+            "type": "number",
+            "maximum": 90.0,
+            "minimum": -90.0,
+            "title": "Latitude"
+          },
+          "longitude": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": -180.0,
+            "title": "Longitude"
+          }
+        },
+        "type": "object",
+        "required": [
+          "latitude",
+          "longitude"
+        ],
+        "title": "Location"
+      },
+      "MandiEvidence": {
+        "properties": {
+          "api_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Api Version",
+            "default": "1.0"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "attribution_url": {
+            "type": "string",
+            "title": "Attribution Url"
+          },
+          "attribution_text": {
+            "type": "string",
+            "title": "Attribution Text"
+          },
+          "licence_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Licence Url"
+          },
+          "modifications": {
+            "type": "string",
+            "title": "Modifications"
+          },
+          "request_url": {
+            "type": "string",
+            "title": "Request Url"
+          },
+          "fetched_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Fetched At"
+          },
+          "is_stale": {
+            "type": "boolean",
+            "title": "Is Stale",
+            "default": false
+          },
+          "data_status": {
+            "type": "string",
+            "enum": [
+              "complete",
+              "partial",
+              "empty"
+            ],
+            "title": "Data Status",
+            "default": "complete"
+          },
+          "missing_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Reasons",
+            "default": []
+          },
+          "state": {
+            "type": "string",
+            "title": "State"
+          },
+          "district": {
+            "type": "string",
+            "title": "District"
+          },
+          "commodity": {
+            "type": "string",
+            "title": "Commodity"
+          },
+          "records": {
+            "items": {
+              "$ref": "#/components/schemas/MandiPrice"
+            },
+            "type": "array",
+            "title": "Records"
+          },
+          "price_unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price Unit"
+          },
+          "limitation": {
+            "type": "string",
+            "title": "Limitation",
+            "default": "Returned page only, not necessarily latest records. Arrival dates are source text. Price unit and authenticated response schema require live verification."
+          }
+        },
+        "type": "object",
+        "required": [
+          "source",
+          "attribution_url",
+          "attribution_text",
+          "licence_url",
+          "modifications",
+          "request_url",
+          "fetched_at",
+          "state",
+          "district",
+          "commodity",
+          "records"
+        ],
+        "title": "MandiEvidence"
+      },
+      "MandiPrice": {
+        "properties": {
+          "state": {
+            "type": "string",
+            "title": "State"
+          },
+          "district": {
+            "type": "string",
+            "title": "District"
+          },
+          "market": {
+            "type": "string",
+            "title": "Market"
+          },
+          "commodity": {
+            "type": "string",
+            "title": "Commodity"
+          },
+          "variety": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Variety"
+          },
+          "arrival_date": {
+            "type": "string",
+            "title": "Arrival Date"
+          },
+          "min_price": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Price"
+          },
+          "max_price": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Price"
+          },
+          "modal_price": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Modal Price"
+          }
+        },
+        "type": "object",
+        "required": [
+          "state",
+          "district",
+          "market",
+          "commodity",
+          "arrival_date",
+          "min_price",
+          "max_price",
+          "modal_price"
+        ],
+        "title": "MandiPrice"
+      },
+      "Place": {
+        "properties": {
+          "latitude": {
+            "type": "number",
+            "maximum": 90.0,
+            "minimum": -90.0,
+            "title": "Latitude"
+          },
+          "longitude": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": -180.0,
+            "title": "Longitude"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "country_code": {
+            "type": "string",
+            "title": "Country Code"
+          },
+          "admin1": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Admin1"
+          },
+          "admin2": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Admin2"
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
+          }
+        },
+        "type": "object",
+        "required": [
+          "latitude",
+          "longitude",
+          "id",
+          "name",
+          "country_code"
+        ],
+        "title": "Place"
+      },
+      "Plan": {
+        "properties": {
+          "api_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Api Version",
+            "default": "1.0"
+          },
+          "crop": {
+            "type": "string",
+            "enum": [
+              "ragi",
+              "paddy",
+              "maize",
+              "tur",
+              "groundnut",
+              "tomato"
+            ],
+            "title": "Crop"
+          },
+          "location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "rule_version": {
+            "type": "string",
+            "title": "Rule Version"
+          },
+          "date_basis": {
+            "type": "string",
+            "const": "UTC forecast days",
+            "title": "Date Basis",
+            "default": "UTC forecast days"
+          },
+          "sowing_status": {
+            "type": "string",
+            "enum": [
+              "not_sown",
+              "growing"
+            ],
+            "title": "Sowing Status"
+          },
+          "growth_stage": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "flowering",
+                  "other"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Growth Stage"
+          },
+          "actions": {
+            "items": {
+              "$ref": "#/components/schemas/Action"
+            },
+            "type": "array",
+            "title": "Actions"
+          },
+          "disabled_parameters": {
+            "items": {
+              "$ref": "#/components/schemas/DisabledRule"
+            },
+            "type": "array",
+            "title": "Disabled Parameters"
+          },
+          "evidence": {
+            "$ref": "#/components/schemas/Forecast"
+          },
+          "limitation": {
+            "type": "string",
+            "title": "Limitation"
+          },
+          "agronomy_context": {
+            "$ref": "#/components/schemas/AgronomyContext"
+          },
+          "regional_sowing_window": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Threshold"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sowing_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sowing Date"
+          },
+          "water_balance_availability": {
+            "type": "string",
+            "title": "Water Balance Availability"
+          },
+          "agent_note": {
+            "type": "string",
+            "title": "Agent Note",
+            "default": "Agent explanations unavailable."
+          },
+          "trace_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trace Id"
+          },
+          "optional_evidence_notes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Optional Evidence Notes",
+            "default": [
+              "SoilGrids is optional; missing soil values never block the weather-based plan.",
+              "NASA POWER is retrospective observation cross-check evidence, not a forecast input."
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "crop",
+          "location",
+          "rule_version",
+          "sowing_status",
+          "growth_stage",
+          "actions",
+          "disabled_parameters",
+          "evidence",
+          "limitation",
+          "agronomy_context",
+          "water_balance_availability"
+        ],
+        "title": "Plan"
+      },
+      "PlanRequest": {
+        "properties": {
+          "latitude": {
+            "type": "number",
+            "maximum": 90.0,
+            "minimum": -90.0,
+            "title": "Latitude"
+          },
+          "longitude": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": -180.0,
+            "title": "Longitude"
+          },
+          "api_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Api Version",
+            "default": "1.0"
+          },
+          "sowing_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sowing Date"
+          },
+          "crop": {
+            "type": "string",
+            "enum": [
+              "ragi",
+              "paddy",
+              "maize",
+              "tur",
+              "groundnut",
+              "tomato"
+            ],
+            "title": "Crop"
+          },
+          "sowing_status": {
+            "type": "string",
+            "enum": [
+              "not_sown",
+              "growing"
+            ],
+            "title": "Sowing Status"
+          },
+          "growth_stage": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "flowering",
+                  "other"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Growth Stage"
+          },
+          "agronomy_context": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AgronomyContext"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "en",
+              "hi",
+              "kn",
+              "te",
+              "ta",
+              "mr"
+            ],
+            "title": "Language",
+            "default": "en"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "latitude",
+          "longitude",
+          "crop",
+          "sowing_status"
+        ],
+        "title": "PlanRequest"
+      },
+      "PowerEvidence": {
+        "properties": {
+          "api_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Api Version",
+            "default": "1.0"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "attribution_url": {
+            "type": "string",
+            "title": "Attribution Url"
+          },
+          "attribution_text": {
+            "type": "string",
+            "title": "Attribution Text"
+          },
+          "licence_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Licence Url"
+          },
+          "modifications": {
+            "type": "string",
+            "title": "Modifications"
+          },
+          "request_url": {
+            "type": "string",
+            "title": "Request Url"
+          },
+          "fetched_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Fetched At"
+          },
+          "is_stale": {
+            "type": "boolean",
+            "title": "Is Stale",
+            "default": false
+          },
+          "data_status": {
+            "type": "string",
+            "enum": [
+              "complete",
+              "partial",
+              "empty"
+            ],
+            "title": "Data Status",
+            "default": "complete"
+          },
+          "missing_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Reasons",
+            "default": []
+          },
+          "evidence_role": {
+            "type": "string",
+            "title": "Evidence Role",
+            "default": "observation_cross_check"
+          },
+          "service_version": {
+            "type": "string",
+            "title": "Service Version"
+          },
+          "data_sources": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Data Sources"
+          },
+          "location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Start Date"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date",
+            "title": "End Date"
+          },
+          "daily": {
+            "$ref": "#/components/schemas/Series"
+          },
+          "limitation": {
+            "type": "string",
+            "title": "Limitation",
+            "default": "Gridded retrospective estimates; not a forecast or plot station observation."
+          }
+        },
+        "type": "object",
+        "required": [
+          "source",
+          "attribution_url",
+          "attribution_text",
+          "licence_url",
+          "modifications",
+          "request_url",
+          "fetched_at",
+          "service_version",
+          "data_sources",
+          "location",
+          "start_date",
+          "end_date",
+          "daily"
+        ],
+        "title": "PowerEvidence"
+      },
+      "RainScore": {
+        "properties": {
+          "definition": {
+            "type": "string",
+            "enum": [
+              "gt0",
+              "ge1"
+            ],
+            "title": "Definition"
+          },
+          "event": {
+            "type": "string",
+            "title": "Event"
+          },
+          "paired_days": {
+            "type": "integer",
+            "title": "Paired Days"
+          },
+          "missing_days": {
+            "type": "integer",
+            "title": "Missing Days"
+          },
+          "correct_days": {
+            "type": "integer",
+            "title": "Correct Days"
+          },
+          "accuracy": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accuracy"
+          },
+          "accuracy_ci95": {
+            "anyOf": [
+              {
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array",
+                "maxItems": 2,
+                "minItems": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accuracy Ci95"
+          },
+          "era5_rain_days": {
+            "type": "integer",
+            "title": "Era5 Rain Days"
+          },
+          "era5_rain_share": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Era5 Rain Share"
+          },
+          "majority_class": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "rain",
+                  "no_rain",
+                  "tie"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Majority Class"
+          },
+          "majority_correct_days": {
+            "type": "integer",
+            "title": "Majority Correct Days"
+          },
+          "majority_accuracy": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Majority Accuracy"
+          }
+        },
+        "type": "object",
+        "required": [
+          "definition",
+          "event",
+          "paired_days",
+          "missing_days",
+          "correct_days",
+          "accuracy",
+          "accuracy_ci95",
+          "era5_rain_days",
+          "era5_rain_share",
+          "majority_class",
+          "majority_correct_days",
+          "majority_accuracy"
+        ],
+        "title": "RainScore"
+      },
+      "RuleResult": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "available",
+              "insufficient_data",
+              "invalid_input"
+            ],
+            "title": "Status"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "unit": {
+            "type": "string",
+            "title": "Unit"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "unit",
+          "reason"
+        ],
+        "title": "RuleResult"
+      },
+      "Series": {
+        "properties": {
+          "time": {
+            "items": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "type": "array",
+            "title": "Time"
+          },
+          "values": {
+            "additionalProperties": {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            "type": "object",
+            "title": "Values"
+          },
+          "units": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Units"
+          }
+        },
+        "type": "object",
+        "required": [
+          "time",
+          "values",
+          "units"
+        ],
+        "title": "Series"
+      },
+      "SoilEvidence": {
+        "properties": {
+          "api_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Api Version",
+            "default": "1.0"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "attribution_url": {
+            "type": "string",
+            "title": "Attribution Url"
+          },
+          "attribution_text": {
+            "type": "string",
+            "title": "Attribution Text"
+          },
+          "licence_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Licence Url"
+          },
+          "modifications": {
+            "type": "string",
+            "title": "Modifications"
+          },
+          "request_url": {
+            "type": "string",
+            "title": "Request Url"
+          },
+          "fetched_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Fetched At"
+          },
+          "is_stale": {
+            "type": "boolean",
+            "title": "Is Stale",
+            "default": false
+          },
+          "data_status": {
+            "type": "string",
+            "enum": [
+              "complete",
+              "partial",
+              "empty"
+            ],
+            "title": "Data Status",
+            "default": "complete"
+          },
+          "missing_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Reasons",
+            "default": []
+          },
+          "location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "properties": {
+            "items": {
+              "$ref": "#/components/schemas/SoilProperty"
+            },
+            "type": "array",
+            "title": "Properties"
+          },
+          "limitation": {
+            "type": "string",
+            "title": "Limitation",
+            "default": "SoilGrids model estimates for the top 5 cm, not a plot soil test."
+          }
+        },
+        "type": "object",
+        "required": [
+          "source",
+          "attribution_url",
+          "attribution_text",
+          "licence_url",
+          "modifications",
+          "request_url",
+          "fetched_at",
+          "location",
+          "properties"
+        ],
+        "title": "SoilEvidence"
+      },
+      "SoilProperty": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "depth": {
+            "type": "string",
+            "title": "Depth"
+          },
+          "mapped_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mapped Value"
+          },
+          "mapped_unit": {
+            "type": "string",
+            "title": "Mapped Unit"
+          },
+          "conversion_factor": {
+            "type": "number",
+            "title": "Conversion Factor"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "unit": {
+            "type": "string",
+            "title": "Unit"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "depth",
+          "mapped_value",
+          "mapped_unit",
+          "conversion_factor",
+          "value",
+          "unit"
+        ],
+        "title": "SoilProperty"
+      },
+      "Threshold": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "citation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Citation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage"
+          },
+          "districts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Districts",
+            "default": []
+          },
+          "reference_only": {
+            "type": "boolean",
+            "title": "Reference Only",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "enabled",
+          "value",
+          "citation",
+          "reason"
+        ],
+        "title": "Threshold"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

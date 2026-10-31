@@ -1,0 +1,5 @@
+{
+  "url": "https://rest.isric.org/soilgrids/v2.0/properties/query?lat=13.14&lon=78.13&property=clay&property=sand&property=silt&property=phh2o&property=soc&depth=0-5cm&value=mean",
+  "fetched_at": "2026-10-30T16:42:13.451364+00:00",
+  "purpose": "Isolated recorded-response tests only"
+}
