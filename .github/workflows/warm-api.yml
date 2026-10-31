@@ -1,0 +1,28 @@
+name: Warm API
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/10 * * * *'
+permissions: {}
+jobs:
+  health:
+    if: vars.SOWCAST_KEEP_ALIVE == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      API_URL: ${{ vars.SOWCAST_API_URL }}
+    steps:
+      - name: Request process health
+        run: |
+          python - <<'PY'
+          import os
+          import urllib.parse
+          import urllib.request
+          base = os.environ["API_URL"].rstrip("/")
+          parsed = urllib.parse.urlsplit(base)
+          if parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password or parsed.path or parsed.query or parsed.fragment:
+              raise SystemExit("Set SOWCAST_API_URL to the public HTTPS origin")
+          with urllib.request.urlopen(base + "/health", timeout=90) as response:
+              if response.status != 200:
+                  raise SystemExit("Health request failed")
+          PY

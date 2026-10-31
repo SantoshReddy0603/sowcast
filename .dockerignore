@@ -1,0 +1,16 @@
+.git
+.venv
+.env
+**/.env
+**/.env.*
+.*
+.sowcast
+**/node_modules
+**/dist
+**/__pycache__
+**/*.egg-info
+**/test-results
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
+apps/api/tests
