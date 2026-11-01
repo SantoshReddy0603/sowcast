@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 import httpx
+import structlog
 
 from sowcast.sources.models import SourceError, SourceHealth
 
@@ -55,11 +56,25 @@ class SourceTransport:
     async def get(self, url: str, params: dict[str, QueryValue]) -> dict[str, Any]:
         if self.unavailable:
             self.report("unavailable", "source_unavailable")
+            structlog.get_logger().info(
+                "source_request",
+                source=self.source,
+                error_code="source_unavailable",
+                latency_ms=0.0,
+                attempt=0,
+            )
             raise SourceError(
                 "source_unavailable", "Source is disabled for this demonstration", True, self.source
             )
         async with self.lock:
             if self.opened_at is not None and time.monotonic() - self.opened_at < self.cooldown:
+                structlog.get_logger().info(
+                    "source_request",
+                    source=self.source,
+                    error_code="circuit_open",
+                    latency_ms=0.0,
+                    attempt=0,
+                )
                 raise SourceError(
                     "circuit_open", "Source is temporarily unavailable", True, self.source
                 )
@@ -100,11 +115,25 @@ class SourceTransport:
                         request_count=self.request_count,
                         latency_ms=(time.monotonic() - started) * 1000,
                     )
+                    structlog.get_logger().info(
+                        "source_request",
+                        source=self.source,
+                        http_status=response.status_code,
+                        latency_ms=round(self.health.latency_ms or 0.0, 3),
+                        attempt=attempt + 1,
+                    )
                     return payload
                 except httpx.RequestError:
                     error = SourceError("network_error", "Source request failed", True, self.source)
                 except SourceError as exc:
                     error = SourceError(exc.code, str(exc), exc.retryable, self.source)
+                structlog.get_logger().info(
+                    "source_request",
+                    source=self.source,
+                    error_code=error.code,
+                    latency_ms=round((time.monotonic() - started) * 1000, 3),
+                    attempt=attempt + 1,
+                )
                 if not error.retryable or attempt == self.attempts - 1:
                     self.failures += 1
                     if self.failures >= self.failure_threshold:

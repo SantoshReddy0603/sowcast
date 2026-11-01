@@ -1,20 +1,28 @@
 import argparse
 import asyncio
 import os
+import sqlite3
+from pathlib import Path
 from uuid import uuid4
 
 import httpx
+import structlog
 from pydantic import ValidationError
 
 from sowcast.cache.forecast import ForecastCache
+from sowcast.configuration import load_environment
+from sowcast.logging import configure_logging
 from sowcast.sources.forecast import ForecastClient
 from sowcast.sources.models import Location, SourceError
 from sowcast.sources.services import SourceServices
 from sowcast.sources.transport import SourceTransport
+from sowcast.storage.backup import copy_database
 from sowcast.storage.database import Database
 
 
 async def run(latitude: float, longitude: float) -> None:
+    identifier = str(uuid4())
+    structlog.contextvars.bind_contextvars(request_id=identifier)
     location = Location(latitude=latitude, longitude=longitude)
     async with httpx.AsyncClient() as http:
         source = ForecastClient(SourceTransport(http))
@@ -23,13 +31,15 @@ async def run(latitude: float, longitude: float) -> None:
             result = await cache.get(location)
             print(result.model_dump_json(indent=2))
         except SourceError as exc:
-            print(exc.envelope(str(uuid4())).model_dump_json())
+            print(exc.envelope(identifier).model_dump_json())
             raise SystemExit(1) from exc
         finally:
             await cache.close()
 
 
 async def run_backtest(latitude: float, longitude: float) -> None:
+    identifier = str(uuid4())
+    structlog.contextvars.bind_contextvars(request_id=identifier)
     location = Location(latitude=latitude, longitude=longitude)
     async with httpx.AsyncClient() as http:
         services = SourceServices(http, os.environ.get("DATA_GOV_IN_API_KEY"))
@@ -37,7 +47,7 @@ async def run_backtest(latitude: float, longitude: float) -> None:
             result = await services.backtest.get(location)
             print(result.model_dump_json(indent=2))
         except SourceError as exc:
-            print(exc.envelope(str(uuid4())).model_dump_json())
+            print(exc.envelope(identifier).model_dump_json())
             raise SystemExit(1) from exc
         finally:
             await services.close()
@@ -62,9 +72,14 @@ async def migrate() -> None:
 
 
 def main() -> None:
+    configure_logging()
+    structlog.contextvars.bind_contextvars(request_id=str(uuid4()))
     parser = argparse.ArgumentParser(description="Fetch live Sowcast weather evidence")
     parser.add_argument(
-        "command", nargs="?", choices=("weather", "backtest", "migrate", "serve"), default="weather"
+        "command",
+        nargs="?",
+        choices=("weather", "backtest", "migrate", "serve", "backup", "restore"),
+        default="weather",
     )
     parser.add_argument(
         "--scheduled",
@@ -73,7 +88,30 @@ def main() -> None:
     )
     parser.add_argument("--latitude", type=float)
     parser.add_argument("--longitude", type=float)
+    parser.add_argument("--source", type=Path, help="SQLite database or backup to read")
+    parser.add_argument(
+        "--destination", type=Path, help="New SQLite file; existing files are never overwritten"
+    )
+    parser.add_argument(
+        "--env-file", type=Path, help="Load a local environment file before startup"
+    )
     args = parser.parse_args()
+    if args.command in {"backup", "restore"}:
+        if args.source is None or args.destination is None:
+            parser.error("Backup/restore requires --source and --destination")
+        try:
+            copy_database(args.source, args.destination)
+        except (OSError, ValueError, sqlite3.Error):
+            parser.error(
+                "Cannot copy database: verify the source, parent folder and unused destination"
+            )
+        print("SQLite snapshot verified. Existing files were not overwritten.")
+        return
+    if args.env_file is not None:
+        try:
+            load_environment(args.env_file)
+        except (OSError, UnicodeError, ValueError):
+            parser.error("Cannot load environment file; check its path and KEY=value entries")
     if args.command == "serve":
         import uvicorn
 
@@ -82,6 +120,7 @@ def main() -> None:
             host="0.0.0.0",
             port=int(os.environ.get("PORT", "8000")),
             proxy_headers=False,
+            access_log=False,
         )
         return
     if args.command == "migrate":

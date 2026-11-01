@@ -158,8 +158,8 @@ async def test_plan_water_context_and_regional_scope():
             transport=httpx.ASGITransport(app=app), base_url="http://test"
         ) as client:
             body = {
-                "latitude": 12.97,
-                "longitude": 77.59,
+                "latitude": 13.14,
+                "longitude": 78.13,
                 "crop": "maize",
                 "sowing_status": "growing",
                 "agronomy_context": {
@@ -174,12 +174,15 @@ async def test_plan_water_context_and_regional_scope():
             assert response.status_code == 200
             plan = response.json()
             first, second = plan["actions"][:2]
+            assert first["kind"] == "review_water_balance"
+            assert second["kind"] == "review_evidence"
             expected = 1.2 * payload["daily"]["et0_fao_evapotranspiration"][0]
             assert first["water_balance"]["crop_et_mm"]["value"] == pytest.approx(expected)
             assert "Kc 1.200" in first["reason"]
             assert "not an irrigation dose" in first["reason"]
             assert second["water_balance"]["coefficient"]["status"] == "insufficient_data"
             assert plan["regional_sowing_window"]["districts"] == ["Kolar"]
+            body["latitude"], body["longitude"] = 12.72, 77.28
             body["agronomy_context"]["district"] = "Ramanagara"
             assert (await client.post("/v1/plans", json=body)).json()[
                 "regional_sowing_window"

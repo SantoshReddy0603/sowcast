@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {chromium} from 'playwright';
 
 const base = process.env.SOWCAST_WEB_URL || 'http://127.0.0.1:5173';
-const browser = await chromium.launch({headless:true});
+const browser = await chromium.launch({headless:true,...(process.env.SOWCAST_BROWSER_CHANNEL ? {channel:process.env.SOWCAST_BROWSER_CHANNEL} : {})});
 const page = await browser.newPage({viewport:{width:1280,height:900}});
 const errors = [];
 page.on('pageerror', error => errors.push(error.message));
@@ -32,7 +32,7 @@ try {
   await rows.first().getByText('Why this task?', {exact:true}).click();
   await rows.first().getByText('Forecast rainfall', {exact:true}).waitFor();
   assert.equal(await page.locator('svg.weather-chart').count(), 1);
-  assert((await page.locator('body').innerText()).includes('Local climate normal unavailable'));
+  assert((await page.locator('.climate-status').innerText()).toLowerCase().includes('historical comparison'));
   await page.screenshot({path:process.env.SOWCAST_SCREENSHOT || 'test-results/plan.png', fullPage:true});
   console.log('PASS real place search → pin → crop/date → live plan; evidence disclosure and chart');
   await page.setViewportSize({width:390,height:844});
