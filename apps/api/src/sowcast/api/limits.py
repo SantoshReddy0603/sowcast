@@ -26,6 +26,8 @@ class RateLimiter:
         self.general = setting("SOWCAST_RATE_LIMIT", 120)
         self.agent = setting("SOWCAST_AGENT_LIMIT", 10)
         self.backtest = setting("SOWCAST_BACKTEST_LIMIT", 5)
+        self.climate = setting("SOWCAST_CLIMATE_LIMIT", 15)
+        self.climate_total = setting("SOWCAST_CLIMATE_GLOBAL_LIMIT", 20)
         self.agent_total = setting("SOWCAST_AGENT_GLOBAL_LIMIT", 10)
         self.backtest_total = setting("SOWCAST_BACKTEST_GLOBAL_LIMIT", 10)
         self.events: dict[tuple[str, str], deque[float]] = {}
@@ -39,6 +41,11 @@ class RateLimiter:
             policies += [
                 (client, "backtest", self.backtest),
                 ("", "backtest_total", self.backtest_total),
+            ]
+        if path.rstrip("/") == "/v1/climate-normals":
+            policies += [
+                (client, "climate", self.climate),
+                ("", "climate_total", self.climate_total),
             ]
         with self.lock:
             now = self.clock()

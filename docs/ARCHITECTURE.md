@@ -7,6 +7,7 @@ The API uses Python 3.12, FastAPI, async httpx, Pydantic, SQLAlchemy/Alembic and
 | Component | Responsibility |
 | --- | --- |
 | sources | One typed client per external source; shared transport deadlines, retries, jitter, circuits and observed health. Clients do not call one another. |
+| geography | Local simplified 2021 district boundaries resolve coordinates; provenance and uncertainty travel with the result. |
 | cache | Bounded TTL/stale-while-revalidate caches, original fetch time, coalesced refresh and hard expiry. |
 | agronomy | Pure formulas and cited crop catalogue. Unknown inputs return insufficient_data, never zero. |
 | agent | Direct HTTP provider, one batched plan generation, bounded six-tool loop, correction and fallback. |
@@ -14,6 +15,34 @@ The API uses Python 3.12, FastAPI, async httpx, Pydantic, SQLAlchemy/Alembic and
 | backtest | Fixed GFS leads aligned with ERA5 by UTC valid time; paired counts, both rain definitions and retrospective baselines. |
 | api | Input validation, request IDs, typed errors, rate limits, explicit CORS and health/readiness. |
 | storage | SQLAlchemy models, Alembic revision 0001, bounded traces/results and owner/expiry backtest leases. |
+
+## Data flow
+
+```mermaid
+flowchart LR
+    subgraph Sources[Evidence sources]
+        OM[Open-Meteo forecast and GFS]
+        ERA[ERA5 archive]
+        POW[NASA POWER]
+        OTH[Soil / flood / market, optional]
+    end
+    Web[Plot / Plan / Ask / Reliability] --> API[FastAPI]
+    OM --> Cache[Typed clients, cache, source health]
+    ERA --> Cache
+    POW --> Cache
+    OTH --> Cache
+    Cache --> API
+    API --> Rules[Rules engine: cited dated actions]
+    API --> BT[Backtest: GFS vs ERA5]
+    Rules --> Agent
+    BT --> Agent
+    API --> Agent[Gemini agent with six tools, bounded loop]
+    Agent --> Guard[Guardrail: evidence binding, closed vocabulary]
+    Guard -->|verified claims| Web
+    Guard -->|rejected or provider failure| Fallback[Evidence-only answer with cited values]
+    Fallback --> Web
+    API --> DB[(Traces and results: SQLite / PostgreSQL)]
+```
 
 ## Evidence and actions
 
@@ -31,7 +60,7 @@ Trace writes redact credential-shaped content, cap payloads and retain 1,000 sum
 
 ## HTTP and delivery
 
-The outer request-ID layer wraps CORS and rate limiting so limit errors carry both required headers and the existing error body. Default budgets use sliding 60-second windows and bounded maps; /health and OPTIONS are exempt. /ready is a limited database probe. Peer IP is taken from the connection, not arbitrary forwarded headers. A reverse proxy may group clients under one peer; process-wide expensive-route limits still bound aggregate requests. Multi-worker limits multiply; they are not a distributed account quota.
+The outer request-ID layer wraps CORS and rate limiting so limit errors carry both required headers and the existing error body. Climate, backtest and combined plan/chat requests have separate per-IP and process-wide expensive-route budgets. Default budgets use sliding 60-second windows and bounded maps; /health and OPTIONS are exempt. /ready is a limited database probe. Peer IP is taken from the connection, not arbitrary forwarded headers. A reverse proxy may group clients under one peer; process-wide expensive-route limits still bound aggregate requests. Multi-worker limits multiply; they are not a distributed account quota.
 
 The web uses same-origin proxies locally and a public API origin compiled into its deployment build. Explicit server CORS grants the production web origin. Render/Vercel files are configuration only; no deployment occurred. Root Compose runs pinned non-root API/web images and PostgreSQL. Render's health check and optional warm workflow request /health to avoid repeatedly waking the database. Manual pre-demo readiness checks /ready. Deployment and free-tier constraints are in RUNBOOK.md.
 
@@ -39,4 +68,10 @@ The failure switch is server-side configuration selecting one real typed error p
 
 ## Verification limits
 
-Local tests cover empty SQLite and PostgreSQL migrations, persistence, limits/CORS, sources, agronomy, guardrails and backtest behavior. Containers built and reported healthy; a proxied real-weather plan returned 14 actions. Local restart-to-readiness was measured, not remote cold start. Hosted database/network behavior, live model generation, physical speech, load, authorization and field efficacy remain unverified.
+Local tests cover empty SQLite and PostgreSQL migrations, persistence, limits/CORS, sources, agronomy, guardrails and backtest behavior. Containers built and reported healthy; a proxied real-weather plan returned 14 actions. Local restart-to-readiness was measured, not remote cold start. Live Gemini generation is UNVERIFIED without credentials and quota; offline provider tests establish only the implemented boundaries. Hosted database/network behavior, physical speech, load, authorization, independent fluency review and field efficacy remain unverified.
+
+## Historical reference and trace access
+
+The optional climate endpoint computes ERA5 calendar-day 1991–2020 averages with sample counts, missing coverage and original fetch times. It shares the archive source transport and uses a bounded cache. The Plan overlay is a gridded historical comparison, not an official local station normal or replacement forecast.
+
+The Plot lookup cancels obsolete requests and permits explicit manual correction. Plan and chat routes independently resolve the district before any source/model work, reject unsupported or uncertain locations and override caller-supplied district context. Trace read/delete require the response-issued capability token; only its digest is stored. Existing records without digests are inaccessible over HTTP. A capability is not account authentication.

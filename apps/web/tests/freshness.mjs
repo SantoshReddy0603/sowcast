@@ -1,0 +1,38 @@
+import assert from 'node:assert/strict';
+import {chromium} from 'playwright';
+const base=process.env.SOWCAST_WEB_URL || 'http://127.0.0.1:5173';
+const browser=await chromium.launch({headless:true});
+const page=await browser.newPage();
+let requests=0;
+page.on('request',request=>{if(request.url().endsWith('/v1/plans') && request.method()==='POST') requests++;});
+try {
+  await page.goto(base);
+  await page.getByLabel('Latitude',{exact:true}).fill('13.14');
+  await page.getByLabel('Longitude',{exact:true}).fill('78.13');
+  await page.getByLabel('Crop',{exact:true}).selectOption('maize');
+  await page.waitForFunction(()=>document.querySelector('#district')?.value==='Kolar');
+  let release;
+  const held=new Promise(resolve=>{release=resolve;});
+  await page.route('**/v1/plans',async route=>{await held; await route.continue();});
+  await page.getByRole('button',{name:'Read the field plan'}).click();
+  await page.getByRole('status').filter({hasText:'Reading the forecast'}).waitFor();
+  await page.getByRole('button',{name:'Plan',exact:true}).click();
+  await page.getByRole('button',{name:'Plan',exact:true}).click();
+  assert.equal(requests,1);
+  release();
+  await page.getByRole('heading',{name:'Dates to keep in view'}).waitFor({timeout:60000});
+  assert.equal(requests,1);
+  await page.unroute('**/v1/plans');
+  await page.getByRole('button',{name:'Ask',exact:true}).click();
+  await page.getByRole('button',{name:'Plan',exact:true}).click();
+  await page.getByRole('heading',{name:'Dates to keep in view'}).waitFor({timeout:60000});
+  assert.equal(requests,2);
+  await page.getByRole('button',{name:'Plan',exact:true}).click();
+  assert.equal(requests,2);
+  await page.getByRole('button',{name:'Ask',exact:true}).click();
+  await page.route('**/v1/plans',route=>route.abort('failed'));
+  await page.getByRole('button',{name:'Plan',exact:true}).click();
+  await page.getByRole('heading',{name:'A pause in the data.'}).waitFor();
+  assert.equal(await page.getByRole('heading',{name:'Dates to keep in view'}).count(),0);
+  console.log('PASS Plan revisit refreshes; current Plan does not refetch; failed refresh removes old plan');
+} finally {await browser.close();}

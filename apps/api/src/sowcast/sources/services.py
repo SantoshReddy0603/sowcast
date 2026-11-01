@@ -8,6 +8,7 @@ from sowcast.backtest.service import BacktestService
 from sowcast.backtest.store import BacktestStore
 from sowcast.cache.forecast import ForecastCache
 from sowcast.cache.ttl import TTLCache
+from sowcast.sources.climate import ClimateClient, ClimateNormals
 from sowcast.sources.flood import FloodClient, FloodEvidence
 from sowcast.sources.forecast import ForecastClient
 from sowcast.sources.geocoding import GeocodingClient, GeocodingEvidence
@@ -52,6 +53,10 @@ class SourceServices:
         power = PowerClient(self.transports["nasa_power"])
         soil = SoilClient(self.transports["soilgrids"])
         mandi = MandiClient(self.transports["agmarknet"], agmarknet_key)
+        climate = ClimateClient(self.transports["open_meteo_archive"])
+
+        async def normals(key: tuple[float, float]) -> ClimateNormals:
+            return await climate.fetch(Location(latitude=key[0], longitude=key[1]))
 
         async def search(key: tuple[str, str]) -> GeocodingEvidence:
             return await geocoding.fetch(*key)
@@ -82,6 +87,7 @@ class SourceServices:
         self.power = TTLCache(radiation, ttl=86400, stale_for=86400)
         self.soil = TTLCache(properties, ttl=86400, stale_for=86400)
         self.mandi = TTLCache(prices, ttl=900, stale_for=3600)
+        self.climate = TTLCache(normals, ttl=604800, stale_for=2592000, capacity=4)
 
     def health(self) -> dict[str, SourceHealth]:
         return {key: transport.health for key, transport in self.transports.items()}
@@ -95,4 +101,5 @@ class SourceServices:
             self.power.close(),
             self.soil.close(),
             self.mandi.close(),
+            self.climate.close(),
         )

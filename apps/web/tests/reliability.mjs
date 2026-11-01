@@ -2,16 +2,16 @@ import assert from 'node:assert/strict';
 import {chromium} from 'playwright';
 
 const base = process.env.SOWCAST_WEB_URL || 'http://127.0.0.1:5173';
-const browser = await chromium.launch({headless:true});
+const browser = await chromium.launch({headless:true,...(process.env.SOWCAST_BROWSER_CHANNEL ? {channel:process.env.SOWCAST_BROWSER_CHANNEL} : {})});
 const page = await browser.newPage({viewport:{width:1280,height:900}});
 const errors = [];
 page.on('pageerror', error => errors.push(error.message));
 try {
   await page.goto(base);
-  await page.getByLabel('Latitude', {exact:true}).fill('12.97');
-  await page.getByLabel('Longitude', {exact:true}).fill('77.59');
+  await page.getByLabel('Latitude', {exact:true}).fill('13.14');
+  await page.getByLabel('Longitude', {exact:true}).fill('78.13');
   await page.getByLabel('Crop', {exact:true}).selectOption('maize');
-  await page.getByLabel('District', {exact:true}).selectOption('Bengaluru Rural');
+  await page.waitForFunction(() => document.querySelector('#district')?.value === 'Kolar');
   await page.getByRole('button', {name:'Read the field plan'}).click();
   await page.getByRole('heading', {name:'Dates to keep in view'}).waitFor({timeout:40000});
   const responsePromise = page.waitForResponse(response => response.url().includes('/v1/backtests?'));

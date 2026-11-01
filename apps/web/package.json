@@ -8,6 +8,9 @@
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "test:browser": "node tests/browser.mjs",
+    "test:district": "node tests/district.mjs",
+    "test:climate": "node tests/climate.mjs",
+    "test:ragi": "node tests/ragi.mjs",
     "lint": "eslint src tests vite.config.js eslint.config.js"
   },
   "dependencies": {

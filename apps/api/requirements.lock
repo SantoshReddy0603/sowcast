@@ -20,6 +20,7 @@ pydantic_core==2.50.2
 PyYAML==6.0.3
 SQLAlchemy==2.1.6
 starlette==1.10.0
+structlog==26.1.0
 typing-inspection==0.4.4
 typing_extensions==4.16.0
 uvicorn==0.54.0

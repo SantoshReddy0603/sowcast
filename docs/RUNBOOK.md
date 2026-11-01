@@ -2,11 +2,11 @@
 
 ## Request limits and CORS
 
-Budgets are sliding 60-second windows in each API process. Defaults: 120 general requests per peer IP; 10 combined plan/chat requests per IP and process; 5 backtests per IP and 10 per process. SOWCAST_RATE_LIMIT, SOWCAST_AGENT_LIMIT, SOWCAST_BACKTEST_LIMIT, SOWCAST_AGENT_GLOBAL_LIMIT and SOWCAST_BACKTEST_GLOBAL_LIMIT override these positive integers. /health and OPTIONS are exempt. /ready is a normal limited database probe. The bounded counter map refuses new buckets when full. Denied requests return 429 with Retry-After, retryable=true and the current request ID. They do not start provider or source work.
+Budgets are sliding 60-second windows in each API process. Defaults: 120 general requests per peer IP; 10 combined plan/chat requests per IP and process; 5 backtest requests per IP and 10 per process; 15 climate-normal requests per IP and 20 per process. Climate has a separate budget because the Plan view requests it on each mount and retry. These allowances cover repeated cached comparisons without consuming backtest or model budgets. All routes still consume the shared general budget. SOWCAST_RATE_LIMIT, SOWCAST_AGENT_LIMIT, SOWCAST_BACKTEST_LIMIT, SOWCAST_AGENT_GLOBAL_LIMIT SOWCAST_BACKTEST_GLOBAL_LIMIT, SOWCAST_CLIMATE_LIMIT and SOWCAST_CLIMATE_GLOBAL_LIMIT override these positive integers. /health and OPTIONS are exempt. /ready is a normal limited database probe. The bounded counter map refuses new buckets when full. Denied requests return 429 with Retry-After, retryable=true and the current request ID. They do not start provider or source work.
 
 Counters reset on restart and do not coordinate workers or hosts. Shared gateways/NAT can share a client budget. The server does not trust arbitrary forwarded headers. This is not account-level abuse prevention. Model quotas vary; lower the global agent budget to allow for regeneration and HTTP retries. Rate limits do not guarantee a provider's free quota.
 
-CORS_ORIGINS is a comma-separated list of exact HTTP origins without paths or wildcards; empty means no cross-origin grant. Credentials are not enabled. Allowed methods are GET/POST and Content-Type. X-Request-ID and Retry-After are exposed. Same-origin Vite and Docker proxies do not require a permissive CORS policy.
+CORS_ORIGINS is a comma-separated list of exact HTTP origins without paths or wildcards; empty means no cross-origin grant. Credentials are not enabled. Allowed methods are GET/POST/DELETE; allowed request headers include Content-Type and Authorization. X-Request-ID and Retry-After are exposed. Same-origin Vite and Docker proxies do not require a permissive CORS policy.
 
 ## Storage
 
@@ -44,7 +44,7 @@ Local Docker restart-to-readiness measured 10.402 seconds, including the restart
 
 ## Local containers
 
-Set POSTGRES_PASSWORD in the shell or a local untracked .env file to a new URL-safe hexadecimal password. Docker Compose reads .env; the Python application does not. Run docker compose build, then docker compose up -d --wait. Open http://127.0.0.1:8080; the web proxy reaches the API at api:8000. API and web run as UID 10001 and 101 respectively; PostgreSQL runs as postgres. All base images are pinned by digest. API dependencies and web dependencies are locked. No credentials are build arguments or image content. Keep .env files out of build contexts.
+Set POSTGRES_PASSWORD in the shell or a local untracked .env file to a new URL-safe hexadecimal password. Docker Compose reads .env; the Python CLI loads it only when explicitly passed `--env-file .env`. Run docker compose build, then docker compose up -d --wait. Open http://127.0.0.1:8080; the web proxy reaches the API at api:8000. API and web run as UID 10001 and 101 respectively; PostgreSQL runs as postgres. All base images are pinned by digest. API dependencies and web dependencies are locked. No credentials are build arguments or image content. Keep .env files out of build contexts.
 
 Use docker compose stop to stop while preserving the database volume. Do not remove the volume unless you intend to erase local records. If you rotate POSTGRES_PASSWORD, update the existing database role password as well as the container environment; changing the environment alone does not change an initialized database role.
 
@@ -56,4 +56,21 @@ For the demo, use open_meteo_forecast in a separate local API process. A real ca
 
 ## Keys and recovery
 
-Rotate a provider or market key in server secret settings, restart, and check configuration status without printing the value. Never add a model key to VITE_API_BASE_URL or any frontend variable. Traces are bounded and redacted, but include coordinates and district; there is no account authentication. Keep this prototype limited to appropriate users until access control and data-retention policy are implemented. A trace UUID is a lookup capability, not authorization. Inspect /health/sources to distinguish unconfigured, uncalled, degraded and unavailable sources; it never triggers probes.
+Rotate a provider or market key in server secret settings, restart, and check configuration status without printing the value. Never add a model key to VITE_API_BASE_URL or any frontend variable. Traces are bounded and redacted, but include coordinates and district; there is no account authentication or plot ownership. Trace reads/deletions now require the separate response access token; a UUID alone grants no access. Keep this prototype limited to appropriate users until account controls are implemented. Inspect /health/sources to distinguish unconfigured, uncalled, degraded and unavailable sources; it never triggers probes.
+
+## Trace retention and deletion
+
+The database retains the newest 1,000 execution summaries, each at most 64,000 encoded bytes. There is no automatic age expiry. A response token authorizes reading/deleting only its trace; Ask exposes deletion. Losing that in-memory token removes browser access, but does not itself erase the server row. Legacy summaries without digests are unavailable through HTTP. Coordinate/district metadata remains private operational data. Deleted summaries can still exist in an earlier backup until the operator expires that backup; restoring it can reintroduce them. Do not collect identifiable farmer records with this prototype. A production retention schedule and account ownership remain required.
+
+## SQLite backup and restore
+
+Run from the project root using the installed API environment. These commands use SQLite's consistent backup API, include committed WAL data, verify integrity, and refuse every existing destination. They do not copy environment files or keys.
+
+```powershell
+python -m sowcast backup --source .sowcast/traces.sqlite3 --destination .sowcast/traces-backup.sqlite3
+python -m sowcast restore --source .sowcast/traces-backup.sqlite3 --destination .sowcast/traces-restored.sqlite3
+```
+
+Repeat for the configured backtest database. Restoring writes a separate new file; it does not replace the running database. Stop the API before explicitly changing SOWCAST_TRACE_DB/SOWCAST_BACKTEST_DB to the inspected restored file. Keep snapshots private with restricted filesystem permissions, choose a retention period and remove expired copies. This local utility does not back up PostgreSQL: use the hosting provider's database tools, then rehearse hosted restoration separately. A local SQLite snapshot/restore rehearsal is recorded in TESTING.md.
+
+Application logs use structlog JSON on stderr. API records contain the server request ID, route template, method, status, source name and elapsed milliseconds. Source attempts record the source name, status or safe error code, attempt count and latency, inheriting the request ID. Raw paths, query strings, headers, bodies and provider payloads are excluded. Unhandled application errors return a fixed internal_error envelope without logging exception details. CLI evidence remains JSON on stdout. Run uvicorn with --no-access-log so its separate access logger does not print raw request targets. Logging behavior follows the context-variable guidance at https://www.structlog.org/en/stable/contextvars.html.

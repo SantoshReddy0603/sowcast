@@ -82,4 +82,10 @@ For all seven leads in this run, ERA5 rain-day share was **36/59 (61.0%)** under
 
 ERA5 lacked the following-midnight value needed for the final rain day, so that whole day was excluded. All 1,440 scored temperature hours were present. Source grids differ and both URLs/coordinates remain in the response. Brier scores remain null: no true probability pairs exist. Older recorded source fixtures cover the preceding window and remain offline regression inputs, not substituted application data.
 
+These scores come from one location and one 60-day window; they do not describe other plots, seasons or the plan's best-match forecast.
+
+Plans for a location with a cached, non-stale backtest list the GFS-versus-ERA5 rain agreement for leads 1-7 as `forecast_reliability`; it is read from the cache and never computed during a plan request, and it comes from a different model than the plan forecast.
+
 Offline tests cover recordings, valid-time alignment, midnight assignment, missing-hour exclusion, both rain boundaries, paired-mask baselines, empty metrics, Wilson reference values/properties, Brier bounds, source validation, typed failures, job coalescing/ownership/expiry and CLI validation. Browser checks exercise both definitions and actual counts, mobile containment, errors/retry and isolated real-response mutations for empty/stale states.
+
+On 1 November 2026, `python -m sowcast backtest --latitude 13.14 --longitude 78.13` with an empty separate local database completed in 6.165 seconds and produced all seven leads. This measures one local cold recompute including command startup. Source/network variance and hosted cold starts remain outside that measurement.

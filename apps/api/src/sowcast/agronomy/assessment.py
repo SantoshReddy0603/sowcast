@@ -69,8 +69,10 @@ class Plan(BaseModel):
     regional_sowing_window: Threshold | None = None
     sowing_date: date | None = None
     water_balance_availability: str
-    agent_note: str = "Agent explanations unavailable."
+    agent_note: str = "Explanations unavailable."
+    forecast_reliability: tuple[str, ...] = ()
     trace_id: str | None = None
+    trace_access_token: str | None = None
     optional_evidence_notes: tuple[str, ...] = (
         "SoilGrids is optional; missing soil values never block the weather-based plan.",
         "NASA POWER is retrospective observation cross-check evidence, not a forecast input.",
@@ -116,7 +118,11 @@ def run_risk_assessment(
             valid_at.date(),
             context,
         )
-        if sowing_status != "growing":
+        if crop in ("ragi", "tur"):
+            coefficient = insufficient(
+                "dimensionless", f"No verified crop-water profile is enabled for {crop}."
+            )
+        elif sowing_status != "growing":
             coefficient = insufficient("dimensionless", "A growing crop is required for crop ET.")
         crop_et, shortfall = crop_water_balance(rain, et0, coefficient)
         water = CropWaterBalance(
@@ -164,14 +170,15 @@ def run_risk_assessment(
             kind = "inspect_heat_exposure"
             reason = (
                 f"{valid_at.date().isoformat()} UTC forecast maximum {high:.2f} °C exceeds "
-                f"the {numeric(heat_parameter):.2f} °C flowering heat screen. "
+                f"the {numeric(heat_parameter):.2f} °C reference flowering heat screen "
+                "(national/international source, not calibrated for Karnataka districts). "
                 "Inspect the crop and seek local advice; duration and injury are not established."
             )
         elif (
             metrics["rainfall_deficit_against_et0"].status == "available" and not evidence.is_stale
         ):
-            kind = "review_water_balance"
             if crop_et.value is not None and shortfall.value is not None:
+                kind = "review_water_balance"
                 reason = (
                     f"{valid_at.date().isoformat()} UTC forecast: rainfall {rain:.2f} mm against "
                     f"reference {crop} {water_stage} ETc {crop_et.value:.2f} mm "
@@ -181,10 +188,26 @@ def run_risk_assessment(
                     "FAO reference values are not locally calibrated."
                 )
             else:
+                kind = "review_evidence"
+                if sowing_status == "not_sown":
+                    next_step = (
+                        "The crop is not yet sown. Review rainfall, soil readiness and local "
+                        "sowing advice before deciding; this is not a safe-to-sow recommendation."
+                    )
+                elif crop in ("ragi", "tur"):
+                    next_step = (
+                        f"No verified crop-water rule is enabled for {crop}; crop water need "
+                        "cannot be assessed. Review the forecast with local extension advice."
+                    )
+                else:
+                    next_step = (
+                        "An applicable crop stage or reference profile is missing. "
+                        "Confirm growth stage and field conditions; "
+                        "no crop-water estimate is shown."
+                    )
                 reason = (
                     f"{valid_at.date().isoformat()} UTC forecast: rainfall {rain:.2f} mm and "
-                    f"ET0 {et0:.2f} mm. Crop-stage ETc is unavailable: {coefficient.reason} "
-                    "Confirm the stage and field conditions before a water decision."
+                    f"reference ET0 {et0:.2f} mm. {next_step}"
                 )
         else:
             kind = "review_evidence"
@@ -234,7 +257,8 @@ def run_risk_assessment(
         evidence=evidence,
         sowing_date=context.planting_date,
         water_balance_availability=(
-            f"No water-balance rule exists for {crop}: Kc and stage lengths are disabled."
+            f"No water-balance rule exists for {crop}. Weather evidence is shown; "
+            "crop-water need is not estimated."
             if crop in ("ragi", "tur")
             else "Reference water balance needs applicable stage inputs and field conditions."
         ),
@@ -247,10 +271,11 @@ def run_risk_assessment(
         ),
         limitation=(
             "Decision support, not a replacement for local extension officers. "
-            "Actions are inspection/review tasks, not prescriptions. Agent explanations are "
-            "unavailable until the provider and shared guardrail are implemented. "
+            "Actions are inspection/review tasks, not prescriptions. "
+            "AI explanations are optional; evidence checks can withhold unsupported responses. "
             "UTC daily extrema screen exposure; they do not establish duration or injury."
-            " District is caller-supplied, not geospatially verified. FAO coefficients and "
+            " District boundaries do not verify field conditions or plot ownership. "
+            "FAO coefficients and "
             "duration examples are reference estimates, not Karnataka calibration. "
             "Historical sowing windows do not establish rainfall onset or soil readiness."
         ),

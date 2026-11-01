@@ -74,3 +74,32 @@ async def test_expensive_routes_limit_before_work(monkeypatch):
             )
             assert response.status_code == 429
             assert all(h.request_count == 0 for h in app.state.sources.health().values())
+
+
+@pytest.mark.parametrize("route", ["/v1/plans", "/v1/chat", "/v1/backtests", "/v1/climate-normals"])
+def test_expensive_budgets_are_isolated(monkeypatch, route):
+    for name in (
+        "AGENT",
+        "AGENT_GLOBAL",
+        "BACKTEST",
+        "BACKTEST_GLOBAL",
+        "CLIMATE",
+        "CLIMATE_GLOBAL",
+    ):
+        monkeypatch.setenv("SOWCAST_" + name + "_LIMIT", "1")
+    limiter = RateLimiter(lambda: 0.0)
+    assert limiter.check("a", route) is None
+    assert limiter.check("a", route) == 60
+    assert limiter.check("b", route) == 60
+    for other in ("/v1/plans", "/v1/backtests", "/v1/climate-normals"):
+        if (other.startswith("/v1/plans") and route in {"/v1/plans", "/v1/chat"}) or other == route:
+            continue
+        assert limiter.check("a", other) is None
+
+
+@pytest.mark.parametrize("route", ["/v1/plans", "/v1/backtests", "/v1/climate-normals"])
+def test_general_budget_still_bounds_all_routes(monkeypatch, route):
+    monkeypatch.setenv("SOWCAST_RATE_LIMIT", "1")
+    limiter = RateLimiter(lambda: 0.0)
+    assert limiter.check("a", "/health/sources") is None
+    assert limiter.check("a", route) == 60

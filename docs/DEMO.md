@@ -4,7 +4,7 @@
 
 - Use the normal local or deployed API with SOWCAST_UNAVAILABLE_SOURCE empty. Confirm /health returns 200 and /ready returns ready. For a free host, request readiness manually well before starting; hosted wake time is unmeasured here.
 - Set the model key and exact model name in the API environment only if you can verify current provider access and quota in the provider console. Allow for one correction and one HTTP retry. If no key is available, explicitly demonstrate the visible unavailable state and structured tool trace; do not describe it as a successful model answer.
-- Precompute the actual demo plot with python -m sowcast backtest --latitude 12.97 --longitude 77.59 --scheduled using the API's DATABASE_URL or local storage paths. Confirm the window, paired counts and freshness in Reliability. A new UTC day creates a new cache key.
+- Precompute the actual demo plot with python -m sowcast backtest --latitude 13.14 --longitude 78.13 --scheduled using the API's DATABASE_URL or local storage paths. Confirm the window, paired counts and freshness in Reliability. A new UTC day creates a new cache key.
 - Confirm Open-Meteo quotas and current /health/sources status. Soil is optional and may be null or unavailable. NASA is delayed retrospective evidence. Neither absence blocks weather tasks. If forecast evidence is down, show the typed failure honestly and retry later; do not substitute a source recording into the application.
 - Prepare a separate local failure API on port 8002 and a separate web proxy on port 5174, leaving the normal app intact. The shell-independent Python command below injects the switch only into that child process. It is intentionally not a public URL toggle.
 
@@ -24,7 +24,7 @@ The command text is fixed and contains no interpolated user input. On exit, the 
 
 | Time | Action and statement |
 | --- | --- |
-| 0:00–0:30 | In Plot, type latitude 12.97 and longitude 77.59, select maize and Bengaluru Rural, and choose the actual sowing status. Use a real sowing date only if known; otherwise keep not yet sown. Submit. State that all weather values came from the source attached to this plan. |
+| 0:00–0:30 | In Plot, type latitude 13.14 and longitude 78.13, let Kolar resolve automatically, select maize, and choose the actual sowing status. Use a real sowing date only if known; otherwise keep not yet sown. Submit. State that all weather values came from the source attached to this plan. |
 | 0:30–1:00 | In Plan, open Why this task and point to the forecast inputs, fetch time, rule version and citations. If crop-water context is missing, show that it is unavailable rather than inventing a stage. Note that ragi and tur currently have no crop water-balance rule. |
 | 1:00–1:35 | Open Ask and submit a short question such as “What evidence should I check?” Open Agent trace. Show the actual forecast and risk-assessment tool statuses and latencies, plus the guardrail result. If generation is configured, show only what passed. If unavailable, show the explicit note and explain that deterministic tasks remain. Voice is optional and must not be claimed working unless just exercised successfully. |
 | 1:35–2:10 | Open Reliability. Read the current GFS model window and paired sample counts. Switch between >0 mm and ≥1 mm, show the ERA5 base rate and retrospective majority baseline, and note the approximate interval. State that no lead ranking is established and that UTC days run 05:30–05:30 IST. These scores do not measure the plan's best-match blend. |
