@@ -24,6 +24,15 @@ export interface Weather extends Provenance {
   daily: Series;
   location: {latitude: number; longitude: number};
 }
+export interface ClimateNormals extends Provenance {
+  location: {latitude:number; longitude:number};
+  grid_location: {latitude:number; longitude:number};
+  model: string;
+  start_date: string;
+  end_date: string;
+  days: {month_day:string; values:Record<string,number|null>; samples:Record<string,number>; expected_samples:number}[];
+  limitation: string;
+}
 export interface Place {
   id: number;
   name: string;
@@ -55,8 +64,11 @@ export interface Action {
   };
 }
 export interface Plan {
+  sowing_status: 'growing' | 'not_sown';
   agent_note: string;
+  forecast_reliability: string[];
   trace_id: string | null;
+  trace_access_token: string | null;
   crop: string;
   sowing_date: string | null;
   rule_version: string;
@@ -81,7 +93,7 @@ export interface RequestBody {
   sowing_date: string | null;
   growth_stage: 'flowering' | 'other' | null;
   agronomy_context: {
-    district: string;
+    district: string | null;
     allow_fao_reference: boolean;
   };
 }

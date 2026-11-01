@@ -21,11 +21,21 @@ class BacktestService:
         self.previous, self.archive, self.store, self.clock = previous, archive, store, clock
         self.pending: dict[str, asyncio.Task[BacktestResult]] = {}
 
-    async def get(self, location: Location) -> BacktestResult:
+    def window(self, location: Location) -> tuple[str, date]:
         end = self.clock().astimezone(UTC).date() - timedelta(days=6)
         key = json.dumps(
             [location.latitude, location.longitude, str(end), "1.1.0"], separators=(",", ":")
         )
+        return key, end
+
+    async def cached(self, location: Location) -> BacktestResult | None:
+        result = await self.store.lookup(self.window(location)[0])
+        if result is None:
+            return None
+        return result.model_copy(update={"uncertainty_note": uncertainty_note(result.scores)})
+
+    async def get(self, location: Location) -> BacktestResult:
+        key, end = self.window(location)
         if key not in self.pending:
             if len(self.pending) >= 32:
                 raise SourceError(

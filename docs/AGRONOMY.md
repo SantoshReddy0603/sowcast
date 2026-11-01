@@ -4,11 +4,11 @@ Decision support, not a replacement for local extension officers. No result is a
 
 ## Geographic scope
 
-The requested districts are Bengaluru Rural, Kolar, Tumakuru, Chikkaballapura and Ramanagara. UAS Bengaluru's [agroclimatic-zone table](https://www.uasbangalore.edu.in/en/agroclimatic-zones-uas-bangalore/) places most of this district set in the Eastern Dry Zone; Tumakuru spans zones. This implementation follows the named districts rather than relabelling them all Southern Dry Zone. District is caller-supplied and has not been checked against plot coordinates. No automatic district or crop stage is inferred from location.
+The requested districts are Bengaluru Rural, Kolar, Tumakuru, Chikkaballapura and Ramanagara. UAS Bengaluru's [agroclimatic-zone table](https://www.uasbangalore.edu.in/en/agroclimatic-zones-uas-bangalore/) places most of this district set in the Eastern Dry Zone; Tumakuru spans zones. This implementation follows the named districts rather than relabelling them all Southern Dry Zone. The Plot UI now proposes a district from published simplified 2021 boundaries, with manual correction and visible vintage/accuracy limits. This is approximate administrative identification, not plot verification. Plan and chat independently resolve submitted coordinates on the server and replace caller district context. Outside-pilot, ocean and uncertain boundary points receive a typed validation error before source requests; a forged district cannot enable local rules. The Plot UI also disables reference-water consent outside the pilot area. No crop stage is inferred from location.
 
 ## Enabled values
 
-Catalogue version 1.1.0 contains 18 enabled parameters: 14 numeric values and four verbatim calendar references. Every entry below was opened and read from its cited source. Checked on 2026-10-30. The international coefficients and national thermal limit are not local calibrations. Reference-only values are usable only with explicit request context and the limitations below. Calendar references do not enable a sowing decision.
+Catalogue version 1.1.1 contains the same 18 enabled parameters: 14 numeric values and four verbatim calendar references. Every entry below was opened and read from its cited source. Checked on 2026-10-30. The international coefficients and national thermal limit are not local calibrations. Reference-only values are usable only with explicit request context and the limitations below. Calendar references do not enable a sowing decision.
 
 FAO source: Allen, Pereira, Raes and Smith, Crop Evapotranspiration: Guidelines for Computing Crop Water Requirements, FAO Irrigation and Drainage Paper 56; publisher: Food and Agriculture Organization of the United Nations. [Chapter 6, Tables 11 and 12](https://www.fao.org/4/x0490e/x0490e0b.htm). Table locators are used because the opened version is the official HTML edition. Group-row initial values are identified explicitly; blank crop cells are not interpreted as zero.
 
@@ -63,7 +63,7 @@ A dated task prints the forecast rainfall, reference stage ETc, chosen Kc, ET0 a
 | GDD base temperature | All six crops | No readable accepted ICAR/university bulletin verified the intended base/model for this scope. Search snippets and theses outside the requested bulletin scope were not promoted to parameters. |
 | Heat limit other than paddy flowering; crop cold/frost limit | All remaining crop/stage combinations | No usable opened regional bulletin established the intended damage/screening limit. Optimum growth ranges and experimental treatment temperatures are not damage cutoffs. |
 | Waterlogging excess, sowing temperature bounds and operational calendar/onset suitability | All crops | Missing calibrated field inputs and complete local criteria. Shallow soil moisture and rainfall alone do not establish inundation. |
-| Groundnut calendar | Tumakuru | Section 1.12 prints Iune 1st week to July end. Defective month text is left unresolved rather than silently repaired. |
+| Groundnut calendar | Tumakuru | Section 1.12 prints "Iune 1st week to July end" (sic). Defective month text is left unresolved rather than silently repaired. |
 | Regional calendars outside Kolar | Bengaluru Rural, Chikkaballapura, Ramanagara, Tumakuru | Official plans were read but no additional calendars were activated. Chikkaballapura has corresponding week-based rows but is not assumed equivalent; Ramanagara's rainfed ragi row prints a sixth week of August, which is ambiguous. Other rows need crop/regime-specific validation before use. |
 | Tomato calendar | All districts | No verified crop-specific table row enabled; a generic Vegetables row is not enough. |
 
@@ -93,4 +93,9 @@ No opened accepted source supplied a complete crop-specific tur Kc/stage paramet
 
 ## Visible optional evidence
 
-The Plot/Plan product presents reference crop-water calculations only where the request provides the existing inputs. No new crop threshold is inferred by the UI. SoilGrids is optional and not consumed by the pure assessment; absence cannot become a soil-readiness flag. NASA POWER remains a retrospective observation cross-check, never a forecast input. The weather chart and all forward tasks continue to use the Open-Meteo evidence attached to Plan. Climate normals and cross-source error scoring remain unavailable.
+The Plot/Plan product presents reference crop-water calculations only where the request provides the existing inputs. No new crop threshold is inferred by the UI. SoilGrids is optional and not consumed by the pure assessment; absence cannot become a soil-readiness flag. NASA POWER remains a retrospective observation cross-check, never a forecast input. The weather chart and all forward tasks continue to use the Open-Meteo evidence attached to Plan. ERA5 calendar-day historical averages are available for comparison; cross-source error scoring remains unavailable.
+
+
+## Weather-only review tasks
+
+Assessment version 1.1.1 reserves review_water_balance for days with available reference crop ET and rainfall shortfall. A general rainfall-versus-ET0 metric alone cannot select that task. Unsown crops instead receive review_evidence tasks with rainfall and reference ET0, soil-readiness/local-advice context and an explicit statement that the information is not permission to sow. Growing ragi and tur retain unavailable crop-water estimates and receive weather-only review tasks. Growing crops with incomplete stage/profile inputs also remain weather-only. Verified crop-water and paddy flowering heat screens retain their existing input gates and quantities. No threshold, coefficient or crop stage length was enabled or changed.

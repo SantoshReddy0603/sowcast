@@ -1,19 +1,22 @@
 import asyncio
 import hashlib
 import json
-from collections import OrderedDict
+import secrets
+import time
+from collections import Counter, OrderedDict
 from datetime import UTC, datetime
 from typing import Any, Literal
+from urllib.parse import urlsplit
 from uuid import uuid4
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
-from sowcast.agent.provider import Provider, ProviderError
+from sowcast.agent.provider import Provider, ProviderError, RequestBudget
 from sowcast.agent.tools import PlotContext, ToolCall, ToolRunner
 from sowcast.agronomy.assessment import Plan
 from sowcast.agronomy.catalogue import Catalogue
-from sowcast.guardrails.claims import Claim, Fact, verify
-from sowcast.guardrails.prose import vocabulary
+from sowcast.guardrails.claims import Claim, Fact, Verification, verify
+from sowcast.guardrails.prose import SENTENCES, vocabulary
 from sowcast.i18n.render import Language, measurement
 from sowcast.sources.services import SourceServices
 from sowcast.storage.traces import TraceStore
@@ -28,6 +31,7 @@ class Draft(BaseModel):
 class Answer(BaseModel):
     api_version: Literal["1.0"] = "1.0"
     trace_id: str
+    trace_access_token: str
     language: Language
     status: Literal["verified", "unavailable"]
     claims: tuple[Claim, ...] = ()
@@ -35,6 +39,51 @@ class Answer(BaseModel):
     formatted_facts: dict[str, str] = Field(default_factory=dict)
     note: str
     plan: Plan | None = None
+
+
+def unavailable_note(code: str) -> str:
+    messages = {
+        "provider_quota_exceeded": ("Gemini has reached a quota limit. Try again later."),
+        "provider_request_limit": (
+            "The explanation request limit was reached; no unverified claims are shown."
+        ),
+        "provider_unconfigured": "The AI explanation service is not configured on the server.",
+        "provider_invalid_api_key": "Gemini authentication failed for the AI explanation service.",
+        "provider_expired_api_key": "Gemini authentication failed for the AI explanation service.",
+        "provider_key_revoked": "The AI explanation service could not authenticate with Gemini.",
+        "provider_access_denied": "The AI explanation service does not have access to Gemini.",
+        "provider_model_not_found": "The configured AI model is unavailable.",
+        "provider_network_error": "Gemini could not be reached. Try again later.",
+        "provider_incomplete_response": "Gemini returned an incomplete explanation; none is shown.",
+        "guardrail_rejected": "The AI explanation failed evidence checks and was not shown.",
+        "invalid_draft": "The AI explanation did not meet the required format and was not shown.",
+    }
+    return (
+        "Explanations unavailable. "
+        + messages.get(code, "The service could not complete this request.")
+        + (" Your dated weather evidence remains available.")
+    )
+
+
+def verify_plan_draft(
+    draft: Draft, facts: dict[str, Fact], language: Language, dates: set[str]
+) -> Verification:
+    discrepancies = list(verify(draft.claims, facts, language).discrepancies)
+    counts = Counter(claim.date for claim in draft.claims)
+    if not draft.claims:
+        discrepancies.append("Cited claims required")
+    if draft.tools:
+        discrepancies.append("Plan explanations cannot call tools")
+    missing = sorted(dates - counts.keys())
+    unexpected = sorted(counts.keys() - dates)
+    duplicates = sorted(day for day, count in counts.items() if count > 1)
+    if missing:
+        discrepancies.append("Missing action dates: " + ", ".join(missing))
+    if unexpected:
+        discrepancies.append("Unexpected claim dates: " + ", ".join(unexpected))
+    if duplicates:
+        discrepancies.append("Duplicate claim dates: " + ", ".join(duplicates))
+    return Verification(passed=not discrepancies, discrepancies=tuple(discrepancies))
 
 
 def plan_facts(plan: Plan) -> dict[str, Fact]:
@@ -158,6 +207,28 @@ def tool_facts(name: str, result: dict[str, Any]) -> dict[str, Fact]:
     return facts
 
 
+def input_references(plan: Plan) -> list[dict[str, Any]]:
+    references: list[dict[str, Any]] = []
+    for action in plan.actions:
+        for item in action.inputs:
+            if len(references) == 64:
+                return references
+            parsed = urlsplit(item.request_url)
+            references.append(
+                {
+                    "source": item.source[:100],
+                    "source_url": f"{parsed.scheme}://{parsed.hostname or ''}{parsed.path}"[:512],
+                    "field": item.field[:100],
+                    "valid_at": item.valid_at.isoformat(),
+                    "fetched_at": item.fetched_at.isoformat(),
+                    "is_stale": item.is_stale,
+                    "value": item.value,
+                    "unit": item.unit[:32],
+                }
+            )
+    return references
+
+
 class AgentService:
     def __init__(
         self, provider: Provider, sources: SourceServices, catalogue: Catalogue, traces: TraceStore
@@ -171,12 +242,19 @@ class AgentService:
         self.cache: OrderedDict[str, tuple[Claim, ...]] = OrderedDict()
         self.lock = asyncio.Lock()
 
-    async def explain_plan(self, plan: Plan, language: Language) -> tuple[Plan, Answer]:
+    async def explain_plan(
+        self, plan: Plan, language: Language, *, started_at: float | None = None
+    ) -> tuple[Plan, Answer]:
+        started = time.perf_counter() if started_at is None else started_at
         async with self.lock:
-            return await self._explain_plan(plan, language)
+            return await self._explain_plan(plan, language, started)
 
-    async def _explain_plan(self, plan: Plan, language: Language) -> tuple[Plan, Answer]:
+    async def _explain_plan(
+        self, plan: Plan, language: Language, started: float
+    ) -> tuple[Plan, Answer]:
         trace_id = str(uuid4())
+        trace_access_token = secrets.token_urlsafe(32)
+        budget = RequestBudget(2)
         facts = plan_facts(plan)
         identity = json.dumps(
             {
@@ -196,12 +274,16 @@ class AgentService:
         key = hashlib.sha256(identity.encode()).hexdigest()
         trace: dict[str, Any] = {
             "kind": "plan",
+            "rule_version": plan.rule_version[:128],
+            "location": plan.location.model_dump(),
+            "input_references": input_references(plan),
+            "input_reference_count": sum(len(a.inputs) for a in plan.actions),
             "tools": [],
             "guardrail": "not_run",
             "cache_hit": False,
         }
         claims: tuple[Claim, ...] = ()
-        note = "Agent explanations unavailable; deterministic evidence remains available."
+        note = "Explanations unavailable; deterministic evidence remains available."
         try:
             if not facts:
                 raise ProviderError("required_evidence_unavailable")
@@ -212,17 +294,22 @@ class AgentService:
                 prompt = {
                     "task": (
                         "Explain all dated actions in one response. "
-                        "One cited sentence per day. No tools or numbers in prose."
+                        "One cited sentence per day. No tools or numbers in prose. "
+                        "Write a brief reminder to review evidence or check field conditions. "
+                        "Do not paraphrase action reasons or name crops, stages or measurements. "
+                        "Every word in claim.text must occur in allowed_words, ignoring case. "
+                        "You may reuse sentence_examples; repetition across days is acceptable."
                     ),
                     "language": language,
                     "allowed_words": vocabulary(language),
+                    "sentence_examples": SENTENCES[language],
                     "actions": [
                         {"date": a.date.isoformat(), "kind": a.kind, "reason": a.reason}
                         for a in plan.actions
                     ],
                     "facts": prompt_facts(facts),
                 }
-                claims = await self._draft(prompt, facts, trace)
+                claims = await self._draft(prompt, facts, trace, budget)
                 self.cache[key] = claims
                 while len(self.cache) > 128:
                     self.cache.popitem(last=False)
@@ -244,12 +331,20 @@ class AgentService:
             note = "Explanations checked against this plan's cited numeric evidence."
         except (ProviderError, ValidationError) as exc:
             trace["error"] = exc.code if isinstance(exc, ProviderError) else "invalid_draft"
+            note = unavailable_note(trace["error"])
+            if isinstance(exc, ProviderError) and exc.http_status is not None:
+                trace["provider_http_status"] = exc.http_status
             claims = ()
-        await self.traces.save(trace_id, trace)
+        trace["latency_ms"] = round(max(0.0, time.perf_counter() - started) * 1000, 3)
+        trace["provider_requests"] = budget.used
+        trace["provider_request_limit"] = budget.limit
+        await self.traces.save(trace_id, trace, trace_access_token)
         plan.agent_note = note
         plan.trace_id = trace_id
+        plan.trace_access_token = trace_access_token
         return plan, Answer(
             trace_id=trace_id,
+            trace_access_token=trace_access_token,
             language=language,
             status="verified" if claims else "unavailable",
             claims=claims,
@@ -261,12 +356,16 @@ class AgentService:
         )
 
     async def _draft(
-        self, prompt: dict[str, Any], facts: dict[str, Fact], trace: dict[str, Any]
+        self,
+        prompt: dict[str, Any],
+        facts: dict[str, Fact],
+        trace: dict[str, Any],
+        budget: RequestBudget,
     ) -> tuple[Claim, ...]:
         language: Language = prompt["language"]
         contents = [{"role": "user", "parts": [{"text": json.dumps(prompt, ensure_ascii=False)}]}]
         for attempt in range(2):
-            raw = await self.provider.generate(contents, Draft.model_json_schema())
+            raw = await self.provider.generate(contents, Draft.model_json_schema(), budget)
             try:
                 draft = Draft.model_validate(raw)
             except ValidationError:
@@ -275,15 +374,11 @@ class AgentService:
                     raise ProviderError("invalid_draft") from None
                 contents.append({"role": "user", "parts": [{"text": "Correct the JSON schema."}]})
                 continue
-            result = verify(draft.claims, facts, language)
+            result = verify_plan_draft(
+                draft, facts, language, {action["date"] for action in prompt["actions"]}
+            )
             trace["guardrail"] = result.model_dump()
-            if (
-                draft.claims
-                and not draft.tools
-                and result.passed
-                and {c.date for c in draft.claims} == {a["date"] for a in prompt["actions"]}
-                and len(draft.claims) == len(prompt["actions"])
-            ):
+            if result.passed:
                 return draft.claims
             if attempt == 0:
                 contents.append(
@@ -293,8 +388,13 @@ class AgentService:
                             {
                                 "text": json.dumps(
                                     {
-                                        "correction": result.discrepancies
-                                        or ("Return cited explanatory claims, no tools.",),
+                                        "correction": result.discrepancies,
+                                        "allowed_words": vocabulary(language),
+                                        "sentence_examples": SENTENCES[language],
+                                        "instruction": (
+                                            "Rewrite claim.text using only allowed_words. "
+                                            "Do not copy action reasons into claim.text."
+                                        ),
                                     }
                                 )
                             }
@@ -305,6 +405,8 @@ class AgentService:
 
     async def ask(self, question: str, context: PlotContext, language: Language) -> Answer:
         trace_id = str(uuid4())
+        trace_access_token = secrets.token_urlsafe(32)
+        budget = RequestBudget(6)
         runner = ToolRunner(self.sources, self.catalogue, context)
         trace: dict[str, Any] = {"kind": "chat", "guardrail": "not_run"}
         facts: dict[str, Fact] = {}
@@ -321,8 +423,22 @@ class AgentService:
                         "text": json.dumps(
                             {
                                 "question": question,
+                                "task": (
+                                    "Answer the question with one cited claim per relevant "
+                                    "fact. Choose evidence_id values whose date and field "
+                                    "match the question; prefer facts from the dates, fields "
+                                    "and backtest leads the question asks about. Call tools "
+                                    "only when their evidence is needed. If the needed "
+                                    "evidence is absent, cite the closest available fact and "
+                                    "say to review evidence; never invent values. For "
+                                    "sowing-timing questions, use run_risk_assessment and "
+                                    "get_backtest results; cite forecast rainfall and "
+                                    "evidence facts for candidate days and the backtest "
+                                    "agreement facts; do not recommend a sowing date."
+                                ),
                                 "language": language,
                                 "allowed_words": vocabulary(language),
+                                "sentence_examples": SENTENCES[language],
                                 "context": context.model_dump(mode="json"),
                                 "facts": prompt_facts(facts),
                                 "actions": [a.reason for a in runner.plan.actions]
@@ -349,7 +465,7 @@ class AgentService:
                 raise ProviderError("required_evidence_unavailable")
             async with asyncio.timeout(100):
                 for _ in range(4):
-                    raw = await self.provider.generate(contents, Draft.model_json_schema())
+                    raw = await self.provider.generate(contents, Draft.model_json_schema(), budget)
                     try:
                         draft = Draft.model_validate(raw)
                     except ValidationError:
@@ -376,7 +492,13 @@ class AgentService:
                             results.append(
                                 {
                                     "name": call.name,
-                                    "result": tool_result,
+                                    "result": {
+                                        key: tool_result[key]
+                                        for key in ("status", "code", "retryable")
+                                        if key in tool_result
+                                    }
+                                    if call.name == "run_risk_assessment"
+                                    else tool_result,
                                     "citable_facts": prompt_facts(added),
                                 }
                             )
@@ -389,6 +511,8 @@ class AgentService:
                                             {
                                                 "tool_results": results,
                                                 "instruction": (
+                                                    "Cite citable_facts from these results "
+                                                    "that answer the question. "
                                                     "Acknowledge missing evidence. "
                                                     "Never invent replacement evidence."
                                                 ),
@@ -429,10 +553,16 @@ class AgentService:
                     raise ProviderError("iteration_budget_exhausted")
         except (ProviderError, ValidationError, TimeoutError) as exc:
             trace["error"] = exc.code if isinstance(exc, ProviderError) else type(exc).__name__
+            note = unavailable_note(trace["error"])
+            if isinstance(exc, ProviderError) and exc.http_status is not None:
+                trace["provider_http_status"] = exc.http_status
         trace["tools"] = runner.events
-        await self.traces.save(trace_id, trace)
+        trace["provider_requests"] = budget.used
+        trace["provider_request_limit"] = budget.limit
+        await self.traces.save(trace_id, trace, trace_access_token)
         return Answer(
             trace_id=trace_id,
+            trace_access_token=trace_access_token,
             language=language,
             status="verified" if claims else "unavailable",
             claims=claims,

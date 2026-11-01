@@ -6,7 +6,7 @@ The contract version is 1.0. Evidence, plan, answer and error responses include 
 
 The body requires latitude and longitude (finite WGS84 coordinates), crop (ragi, paddy, maize, tur, groundnut or tomato) and sowing_status (not_sown or growing). It rejects unknown top-level fields. sowing_date is an optional ISO date: an existing sowing date is invalid for not_sown. growth_stage is optional flowering/other and may be absent; null does not invent a stage. agronomy_context contains the district, explicit FAO-reference choice, optional observed water-stage interval and field-management flags documented in AGRONOMY.md. Its planting_date field is retained for compatibility; when both dates are supplied they must match. sowing_date is canonical and is echoed in the response. No sowing date is inferred when it is absent.
 
-The response contains api_version, crop, location, rule_version, date_basis, sowing_status, growth_stage, sowing_date, agronomy_context, actions, disabled_parameters, regional_sowing_window, water_balance_availability, limitation and the complete weather evidence. Each action retains its date, kind, deterministic reason, optional guarded agent explanation, rule version, typed metrics, exact weather input references, crop citations and reference water-balance details. Unknown metrics use status insufficient_data and value null, not zero. No water-balance rule is claimed for ragi or tur. UTC daily boundaries are explicit.
+The response contains api_version, crop, location, rule_version, date_basis, sowing_status, growth_stage, sowing_date, agronomy_context, actions, disabled_parameters, regional_sowing_window, water_balance_availability, limitation and the complete weather evidence. Each action retains its date, kind, deterministic reason, optional guarded agent explanation, rule version, typed metrics, exact weather input references, crop citations and reference water-balance details. Unknown metrics use status insufficient_data and value null, not zero. No water-balance rule is claimed for ragi or tur. UTC daily boundaries are explicit. The optional forecast_reliability list holds GFS-versus-ERA5 rain agreement sentences for leads 1-7 when a non-stale backtest for that location is already cached; it is never computed during a plan request, is empty otherwise, and comes from a different model than the plan forecast.
 
 ## GET /v1/evidence/weather
 
@@ -14,19 +14,19 @@ Required query parameters are latitude and longitude. The response includes api_
 
 ## Errors and request IDs
 
-The error body is api_version plus error containing code, message, source (nullable for local validation), retryable and request_id. Every handled HTTP response has a server-generated X-Request-ID header matching the error ID when present. Source failures use 503; missing keys use a readable non-retryable source error with no upstream call; validation uses 422; unknown routes use the same error shape. Unexpected internal errors are not part of the source-failure contract. Source URLs and messages must not include credentials.
+The error body is api_version plus error containing code, message, source (nullable for local validation), retryable and request_id. Every handled HTTP response has a server-generated X-Request-ID header matching the error ID when present. Source failures use 503; missing keys use a readable non-retryable source error with no upstream call; validation uses 422; unknown routes use the same error shape. Unexpected internal errors return a fixed retryable 500 internal_error envelope without exception details. Source URLs and messages must not include credentials.
 
 ## Other routes
 
 GET /health reports process availability. GET /health/sources performs no probes: unknown/checked_at null means no upstream call; unconfigured describes missing credentials, not an outage. Counters count actual HTTP attempts, including retries. Latency is the last attempt latency. Available/degraded/unavailable describe the most recently requested data, not guaranteed current source availability. Cached responses do not create health requests.
 
-GET /v1/places accepts name and an optional supported language. GET /v1/evidence/flood and /soil accept coordinates. GET /v1/evidence/power also requires start_date and end_date, ordered and at most 61 inclusive days. GET /v1/evidence/mandi accepts district and commodity, requires AGMARKNET_API_KEY and returns a bounded page rather than a latest-price claim. Source evidence has the same provenance/freshness fields, plus typed source-specific data. Empty and partial responses expose missing_reasons. Soil/flood observations do not determine plot waterlogging or flood risk.
+GET /v1/places accepts name and an optional supported language. GET /v1/evidence/flood and /soil accept coordinates. GET /v1/evidence/power also requires start_date and end_date, ordered and at most 61 inclusive days. GET /v1/evidence/mandi accepts district and commodity, requires DATA_GOV_IN_API_KEY or its legacy alias AGMARKNET_API_KEY and returns a bounded page rather than a latest-price claim. Source evidence has the same provenance/freshness fields, plus typed source-specific data. Empty and partial responses expose missing_reasons. Soil/flood observations do not determine plot waterlogging or flood risk.
 
 ## Real request examples
 
-These requests were executed against the local uvicorn server with real upstream services. The maize sowing date is a caller-supplied calculation scenario, not a verified farm observation. API keys are absent from all examples. Excerpts select actual response fields without renaming them; omitted actions/series remain present in the complete response.
+The following requests ran against local servers on 1 November 2026 at latitude 13.14, longitude 78.13. Forecast, flood and climate requests reached their public upstream sources. Backtest returned an existing real result computed earlier that day; its 0.010-second response is a database/cache retrieval, not a cold recompute. Gemini and authenticated market access remain UNVERIFIED because no keys are configured. The sowing date is a calculation scenario, not a verified farm observation.
 
-POST /v1/plans
+POST /v1/plans body:
 
 ```json
 {
@@ -39,322 +39,112 @@ POST /v1/plans
   "agronomy_context": {
     "district": "Kolar",
     "allow_fao_reference": true
-  }
+  },
+  "language": "en"
 }
 ```
 
-HTTP 200; X-Request-ID: 2fff91f0-4961-4b7f-ab89-8d573bb3dfb9.
+HTTP 200, X-Request-ID: e36cece9-17b4-479d-93b4-627320ffe3c9. The response contained 14 actions. This excerpt preserves the first action and its exact input references; remaining actions and fields are omitted here only.
 
 ```json
 {
   "api_version": "1.0",
   "crop": "maize",
-  "sowing_date": "2026-10-01",
-  "rule_version": "1.1.0",
-  "date_basis": "UTC forecast days",
-  "water_balance_availability": "Reference water balance needs applicable stage inputs and field conditions.",
-  "actions": [
-    {
-      "date": "2026-10-30",
-      "kind": "review_water_balance",
-      "reason": "2026-10-30 UTC forecast: rainfall 0.00 mm against reference maize development ETc 2.47 mm (Kc 0.557 × ET0 4.44 mm); gross-rainfall shortfall 2.47 mm. Review soil moisture and irrigation records; this is not an irrigation dose. FAO reference values are not locally calibrated.",
-      "explanation": null,
-      "explanation_status": "unavailable",
-      "rule_version": "1.1.0",
-      "metrics": {
-        "growing_degree_days": {
-          "status": "insufficient_data",
-          "value": null,
-          "unit": "degC_day",
-          "reason": "Daily extrema or verified crop base temperature missing."
-        },
-        "heat_stress_days": {
-          "status": "insufficient_data",
-          "value": null,
-          "unit": "day",
-          "reason": "Temperature coverage or verified heat threshold missing."
-        },
-        "frost_risk": {
-          "status": "insufficient_data",
-          "value": null,
-          "unit": "flag",
-          "reason": "Minimum temperature or verified frost threshold missing."
-        },
-        "rainfall_deficit_against_et0": {
-          "status": "available",
-          "value": 4.44,
-          "unit": "mm",
-          "reason": "Reference atmospheric water deficit; not crop water stress or irrigation volume."
-        },
-        "rainfall_shortfall_against_crop_et": {
-          "status": "available",
-          "value": 2.473714285714286,
-          "unit": "mm",
-          "reason": "Gross rainfall shortfall against reference ETc; not irrigation requirement."
-        },
-        "waterlogging_risk": {
-          "status": "insufficient_data",
-          "value": null,
-          "unit": "flag",
-          "reason": "Field storage, drainage, infiltration or verified limit missing."
-        },
-        "sowing_window_suitability": {
-          "status": "insufficient_data",
-          "value": null,
-          "unit": "flag",
-          "reason": "Verified local sowing window, temperature or soil readiness missing."
-        }
-      },
-      "inputs": [
-        {
-          "source": "open_meteo_forecast",
-          "request_url": "https://api.open-meteo.com/v1/forecast?latitude=13.14&longitude=78.13&hourly=temperature_2m%2Cprecipitation%2Cet0_fao_evapotranspiration%2Csoil_moisture_0_to_1cm%2Cwind_speed_10m&daily=temperature_2m_max%2Ctemperature_2m_min%2Cprecipitation_sum%2Cet0_fao_evapotranspiration&forecast_days=14&timezone=UTC&timeformat=unixtime&temperature_unit=celsius&wind_speed_unit=kmh&precipitation_unit=mm",
-          "fetched_at": "2026-10-30T16:53:15.840108Z",
-          "is_stale": false,
-          "field": "daily.values.temperature_2m_min[0]",
-          "valid_at": "2026-10-30T00:00:00Z",
-          "value": 18.9,
-          "unit": "°C"
-        },
-        {
-          "source": "open_meteo_forecast",
-          "request_url": "https://api.open-meteo.com/v1/forecast?latitude=13.14&longitude=78.13&hourly=temperature_2m%2Cprecipitation%2Cet0_fao_evapotranspiration%2Csoil_moisture_0_to_1cm%2Cwind_speed_10m&daily=temperature_2m_max%2Ctemperature_2m_min%2Cprecipitation_sum%2Cet0_fao_evapotranspiration&forecast_days=14&timezone=UTC&timeformat=unixtime&temperature_unit=celsius&wind_speed_unit=kmh&precipitation_unit=mm",
-          "fetched_at": "2026-10-30T16:53:15.840108Z",
-          "is_stale": false,
-          "field": "daily.values.temperature_2m_max[0]",
-          "valid_at": "2026-10-30T00:00:00Z",
-          "value": 28.8,
-          "unit": "°C"
-        },
-        {
-          "source": "open_meteo_forecast",
-          "request_url": "https://api.open-meteo.com/v1/forecast?latitude=13.14&longitude=78.13&hourly=temperature_2m%2Cprecipitation%2Cet0_fao_evapotranspiration%2Csoil_moisture_0_to_1cm%2Cwind_speed_10m&daily=temperature_2m_max%2Ctemperature_2m_min%2Cprecipitation_sum%2Cet0_fao_evapotranspiration&forecast_days=14&timezone=UTC&timeformat=unixtime&temperature_unit=celsius&wind_speed_unit=kmh&precipitation_unit=mm",
-          "fetched_at": "2026-10-30T16:53:15.840108Z",
-          "is_stale": false,
-          "field": "daily.values.precipitation_sum[0]",
-          "valid_at": "2026-10-30T00:00:00Z",
-          "value": 0.0,
-          "unit": "mm"
-        },
-        {
-          "source": "open_meteo_forecast",
-          "request_url": "https://api.open-meteo.com/v1/forecast?latitude=13.14&longitude=78.13&hourly=temperature_2m%2Cprecipitation%2Cet0_fao_evapotranspiration%2Csoil_moisture_0_to_1cm%2Cwind_speed_10m&daily=temperature_2m_max%2Ctemperature_2m_min%2Cprecipitation_sum%2Cet0_fao_evapotranspiration&forecast_days=14&timezone=UTC&timeformat=unixtime&temperature_unit=celsius&wind_speed_unit=kmh&precipitation_unit=mm",
-          "fetched_at": "2026-10-30T16:53:15.840108Z",
-          "is_stale": false,
-          "field": "daily.values.et0_fao_evapotranspiration[0]",
-          "valid_at": "2026-10-30T00:00:00Z",
-          "value": 4.44,
-          "unit": "mm"
-        }
-      ],
-      "citations": [],
-      "water_balance": {
-        "coefficient": {
-          "status": "available",
-          "value": 0.5571428571428572,
-          "unit": "dimensionless",
-          "reason": "Unadjusted FAO-56 reference coefficient."
-        },
-        "crop_et_mm": {
-          "status": "available",
-          "value": 2.473714285714286,
-          "unit": "mm",
-          "reason": "Reference ETc = Kc × ET0."
-        },
-        "rainfall_shortfall_mm": {
-          "status": "available",
-          "value": 2.473714285714286,
-          "unit": "mm",
-          "reason": "Gross rainfall shortfall against reference ETc; not irrigation requirement."
-        },
-        "stage": "development",
-        "stage_basis": "FAO Table 11 India dry/cool October example; projected, not observed stage",
-        "citations": [
-          {
-            "title": "Crop Evapotranspiration: Guidelines for Computing Crop Water Requirements (FAO Irrigation and Drainage Paper 56)",
-            "publisher": "Food and Agriculture Organization of the United Nations",
-            "url": "https://www.fao.org/4/x0490e/x0490e0b.htm",
-            "locator": "Table 11, Maize (grain), October, India (dry, cool), days_initial",
-            "statement": "Example stage duration, not an observed phenology boundary or a Karnataka sowing recommendation.",
-            "number_as_written": "20",
-            "region": "India (dry, cool), October; not district-calibrated"
-          },
-          {
-            "title": "Crop Evapotranspiration: Guidelines for Computing Crop Water Requirements (FAO Irrigation and Drainage Paper 56)",
-            "publisher": "Food and Agriculture Organization of the United Nations",
-            "url": "https://www.fao.org/4/x0490e/x0490e0b.htm",
-            "locator": "Table 11, Maize (grain), October, India (dry, cool), days_development",
-            "statement": "Example stage duration, not an observed phenology boundary or a Karnataka sowing recommendation.",
-            "number_as_written": "35",
-            "region": "India (dry, cool), October; not district-calibrated"
-          },
-          {
-            "title": "Crop Evapotranspiration: Guidelines for Computing Crop Water Requirements (FAO Irrigation and Drainage Paper 56)",
-            "publisher": "Food and Agriculture Organization of the United Nations",
-            "url": "https://www.fao.org/4/x0490e/x0490e0b.htm",
-            "locator": "Table 11, Maize (grain), October, India (dry, cool), days_mid",
-            "statement": "Example stage duration, not an observed phenology boundary or a Karnataka sowing recommendation.",
-            "number_as_written": "40",
-            "region": "India (dry, cool), October; not district-calibrated"
-          },
-          {
-            "title": "Crop Evapotranspiration: Guidelines for Computing Crop Water Requirements (FAO Irrigation and Drainage Paper 56)",
-            "publisher": "Food and Agriculture Organization of the United Nations",
-            "url": "https://www.fao.org/4/x0490e/x0490e0b.htm",
-            "locator": "Table 11, Maize (grain), October, India (dry, cool), days_late",
-            "statement": "Example stage duration, not an observed phenology boundary or a Karnataka sowing recommendation.",
-            "number_as_written": "30",
-            "region": "India (dry, cool), October; not district-calibrated"
-          },
-          {
-            "title": "Crop Evapotranspiration: Guidelines for Computing Crop Water Requirements (FAO Irrigation and Drainage Paper 56)",
-            "publisher": "Food and Agriculture Organization of the United Nations",
-            "url": "https://www.fao.org/4/x0490e/x0490e0b.htm",
-            "locator": "Table 12, i. Cereals group initial column",
-            "statement": "Unadjusted FAO reference coefficient for non-stressed well-managed crops; wetting frequency and climate require local adjustment. Tomato mid assumes no tall-staked crop adjustment. Paddy initial assumes the standing-water/subhumid reference regime.",
-            "number_as_written": "0.3",
-            "region": "International subhumid reference; not calibrated for the named Karnataka districts"
-          },
-          {
-            "title": "Crop Evapotranspiration: Guidelines for Computing Crop Water Requirements (FAO Irrigation and Drainage Paper 56)",
-            "publisher": "Food and Agriculture Organization of the United Nations",
-            "url": "https://www.fao.org/4/x0490e/x0490e0b.htm",
-            "locator": "Table 12, Maize, Field (grain), mid column",
-            "statement": "Unadjusted FAO reference coefficient for non-stressed well-managed crops; wetting frequency and climate require local adjustment. Tomato mid assumes no tall-staked crop adjustment. Paddy initial assumes the standing-water/subhumid reference regime.",
-            "number_as_written": "1.20",
-            "region": "International subhumid reference; not calibrated for the named Karnataka districts"
-          }
-        ],
-        "warning": "Unadjusted FAO estimate, not locally calibrated crop need or an irrigation dose. Gross rain is not effective rain; soil storage, runoff and irrigation are excluded."
-      }
-    }
-  ]
-}
-```
-
-GET /v1/evidence/weather?latitude=13.14&longitude=78.13
-
-
-HTTP 200; X-Request-ID: 23ad3400-95eb-4db5-8779-b737d58484ea.
-
-```json
-{
-  "api_version": "1.0",
-  "source": "open_meteo_forecast",
-  "request_url": "https://api.open-meteo.com/v1/forecast?latitude=13.14&longitude=78.13&hourly=temperature_2m%2Cprecipitation%2Cet0_fao_evapotranspiration%2Csoil_moisture_0_to_1cm%2Cwind_speed_10m&daily=temperature_2m_max%2Ctemperature_2m_min%2Cprecipitation_sum%2Cet0_fao_evapotranspiration&forecast_days=14&timezone=UTC&timeformat=unixtime&temperature_unit=celsius&wind_speed_unit=kmh&precipitation_unit=mm",
-  "fetched_at": "2026-10-30T16:53:15.840108Z",
-  "is_stale": false,
-  "data_status": "complete",
   "location": {
     "latitude": 13.14,
     "longitude": 78.13
   },
-  "grid_location": {
-    "latitude": 13.110721,
-    "longitude": 78.11475
-  },
-  "attribution_text": "Weather data by Open-Meteo.com",
-  "licence_url": "https://creativecommons.org/licenses/by/4.0/",
-  "daily": {
-    "time": [
-      "2026-10-30T00:00:00Z"
-    ],
-    "values": {
-      "temperature_2m_max": [
-        28.8
-      ],
-      "temperature_2m_min": [
-        18.9
-      ],
-      "precipitation_sum": [
-        0.0
-      ],
-      "et0_fao_evapotranspiration": [
-        4.44
+  "rule_version": "1.1.1",
+  "sowing_date": "2026-10-01",
+  "actions": [
+    {
+      "date": "2026-11-01",
+      "kind": "review_water_balance",
+      "reason": "2026-11-01 UTC forecast: rainfall 0.30 mm against reference maize development ETc 2.48 mm (Kc 0.609 × ET0 4.07 mm); gross-rainfall shortfall 2.18 mm. Review soil moisture and irrigation records; this is not an irrigation dose. FAO reference values are not locally calibrated.",
+      "inputs": [
+        {
+          "source": "open_meteo_forecast",
+          "request_url": "https://api.open-meteo.com/v1/forecast?latitude=13.14&longitude=78.13&hourly=temperature_2m%2Cprecipitation%2Cet0_fao_evapotranspiration%2Csoil_moisture_0_to_1cm%2Cwind_speed_10m&daily=temperature_2m_max%2Ctemperature_2m_min%2Cprecipitation_sum%2Cet0_fao_evapotranspiration&forecast_days=14&timezone=UTC&timeformat=unixtime&temperature_unit=celsius&wind_speed_unit=kmh&precipitation_unit=mm",
+          "fetched_at": "2026-11-01T08:04:21.337729Z",
+          "is_stale": false,
+          "field": "daily.values.temperature_2m_min[0]",
+          "valid_at": "2026-11-01T00:00:00Z",
+          "value": 19.6,
+          "unit": "°C"
+        },
+        {
+          "source": "open_meteo_forecast",
+          "request_url": "https://api.open-meteo.com/v1/forecast?latitude=13.14&longitude=78.13&hourly=temperature_2m%2Cprecipitation%2Cet0_fao_evapotranspiration%2Csoil_moisture_0_to_1cm%2Cwind_speed_10m&daily=temperature_2m_max%2Ctemperature_2m_min%2Cprecipitation_sum%2Cet0_fao_evapotranspiration&forecast_days=14&timezone=UTC&timeformat=unixtime&temperature_unit=celsius&wind_speed_unit=kmh&precipitation_unit=mm",
+          "fetched_at": "2026-11-01T08:04:21.337729Z",
+          "is_stale": false,
+          "field": "daily.values.temperature_2m_max[0]",
+          "valid_at": "2026-11-01T00:00:00Z",
+          "value": 27.6,
+          "unit": "°C"
+        },
+        {
+          "source": "open_meteo_forecast",
+          "request_url": "https://api.open-meteo.com/v1/forecast?latitude=13.14&longitude=78.13&hourly=temperature_2m%2Cprecipitation%2Cet0_fao_evapotranspiration%2Csoil_moisture_0_to_1cm%2Cwind_speed_10m&daily=temperature_2m_max%2Ctemperature_2m_min%2Cprecipitation_sum%2Cet0_fao_evapotranspiration&forecast_days=14&timezone=UTC&timeformat=unixtime&temperature_unit=celsius&wind_speed_unit=kmh&precipitation_unit=mm",
+          "fetched_at": "2026-11-01T08:04:21.337729Z",
+          "is_stale": false,
+          "field": "daily.values.precipitation_sum[0]",
+          "valid_at": "2026-11-01T00:00:00Z",
+          "value": 0.3,
+          "unit": "mm"
+        },
+        {
+          "source": "open_meteo_forecast",
+          "request_url": "https://api.open-meteo.com/v1/forecast?latitude=13.14&longitude=78.13&hourly=temperature_2m%2Cprecipitation%2Cet0_fao_evapotranspiration%2Csoil_moisture_0_to_1cm%2Cwind_speed_10m&daily=temperature_2m_max%2Ctemperature_2m_min%2Cprecipitation_sum%2Cet0_fao_evapotranspiration&forecast_days=14&timezone=UTC&timeformat=unixtime&temperature_unit=celsius&wind_speed_unit=kmh&precipitation_unit=mm",
+          "fetched_at": "2026-11-01T08:04:21.337729Z",
+          "is_stale": false,
+          "field": "daily.values.et0_fao_evapotranspiration[0]",
+          "valid_at": "2026-11-01T00:00:00Z",
+          "value": 4.07,
+          "unit": "mm"
+        }
       ]
-    },
-    "units": {
-      "temperature_2m_max": "°C",
-      "temperature_2m_min": "°C",
-      "precipitation_sum": "mm",
-      "et0_fao_evapotranspiration": "mm"
     }
+  ],
+  "evidence": {
+    "source": "open_meteo_forecast",
+    "fetched_at": "2026-11-01T08:04:21.337729Z",
+    "data_status": "complete",
+    "is_stale": false,
+    "attribution_text": "Weather data by Open-Meteo.com"
   }
 }
 ```
 
-GET /v1/evidence/mandi?district=Kolar&commodity=Tomato
+| Request | Actual result |
+| --- | --- |
+| GET /v1/evidence/weather?latitude=13.14&longitude=78.13 | 200; 14 forecast days; fetched 2026-11-01T08:04:21.337729Z. |
+| GET /v1/evidence/flood?latitude=13.14&longitude=78.13 | 200; river discharge evidence fetched 2026-11-01T08:04:22.268563Z. |
+| GET /v1/backtests?latitude=13.14&longitude=78.13 | 200; seven leads; result computed 2026-11-01T07:52:08.906152Z. |
+| GET /v1/climate-normals?latitude=13.14&longitude=78.13 | 200; 366 calendar-day entries; complete coverage. |
+| POST /v1/chat with the same plot and a typed question | 200;status=unavailable; provider_unconfigured in its trace; no accepted model claims. |
 
+The plan issued a trace capability kept only in memory during this check. GET without it returned 404; authorized GET returned 200 with 56 input references, rule_version=1.1.1, latency_ms=262.541 and provider_requests=0. Authorized DELETE returned 204; reading after deletion returned 404. Raw capability values are not included here.
 
-HTTP 503; X-Request-ID: 1c692df1-949d-4328-9390-db0121a46cdc.
+A separate local API with SOWCAST_UNAVAILABLE_SOURCE=open_meteo_forecast returned HTTP 503 for the same plan request:
 
 ```json
 {
   "api_version": "1.0",
   "error": {
-    "code": "missing_api_key",
-    "message": "Agmarknet: AGMARKNET_API_KEY is not configured",
-    "source": "Agmarknet",
-    "retryable": false,
-    "request_id": "1c692df1-949d-4328-9390-db0121a46cdc"
+    "code": "source_unavailable",
+    "message": "Open-Meteo forecast: Source is disabled for this demonstration (retryable)",
+    "source": "Open-Meteo forecast",
+    "retryable": true,
+    "request_id": "8850bc37-6287-4e88-a38b-3f2f5d2a204a"
   }
 }
 ```
 
-GET /health/sources
+## District identification
 
+GET /v1/places/district requires finite latitude and longitude. It performs local point-in-polygon lookup against the packaged geoBoundaries gbOpen India ADM2 simplified geometry. The response includes location, status (matched, ambiguous or unavailable), district, supported_district, source URL, attribution, licence, boundary_year=2021 and a limitation. District is populated only for a single unambiguous polygon match; shared edges, overlaps and unrecognised coordinates are not guessed. supported_district is non-null only for the five pilot districts. Historical Bangalore Rural and Tumkur labels map to the existing Bengaluru Rural and Tumakuru request names. Other source names are retained and do not enable pilot guidance.
 
-HTTP 200; X-Request-ID: d3b758d4-6f71-4fe3-88d0-04e6cc2f92a6.
-
-```json
-{
-  "api_version": "1.0",
-  "sources": {
-    "open_meteo_forecast": {
-      "status": "available",
-      "checked_at": "2026-10-30T16:53:15.839125Z",
-      "error_code": null,
-      "request_count": 1,
-      "latency_ms": 827.9999999795109
-    },
-    "open_meteo_geocoding": {
-      "status": "available",
-      "checked_at": "2026-10-30T16:53:16.764672Z",
-      "error_code": null,
-      "request_count": 1,
-      "latency_ms": 719.0000000409782
-    },
-    "open_meteo_flood": {
-      "status": "available",
-      "checked_at": "2026-10-30T16:53:17.948038Z",
-      "error_code": null,
-      "request_count": 1,
-      "latency_ms": 1125.0
-    },
-    "nasa_power": {
-      "status": "degraded",
-      "checked_at": "2026-10-30T16:53:19.214202Z",
-      "error_code": "partial_data",
-      "request_count": 1,
-      "latency_ms": 1186.9999999180436
-    },
-    "soilgrids": {
-      "status": "degraded",
-      "checked_at": "2026-10-30T16:53:22.143042Z",
-      "error_code": "empty_data",
-      "request_count": 1,
-      "latency_ms": 2875.0
-    },
-    "agmarknet": {
-      "status": "unconfigured",
-      "checked_at": null,
-      "error_code": "missing_api_key",
-      "request_count": 0,
-      "latency_ms": null
-    }
-  }
-}
-```
+This route makes no upstream call and is independent of Gemini. Invalid/missing coordinates use the existing 422 envelope. The Plot UI rechecks after map clicks, map-centre selection, place search and coordinate edits. It cancels outdated responses, clears the old selection, shows lookup progress and permits manual correction. An outside-pilot match displays its actual source district name and submits district=null with allow_fao_reference=false; a boundary/unknown/failed lookup asks for manual confirmation. See DATA_SOURCES.md for data vintage and provenance. This lookup does not extend agronomic coverage. Plan and chat independently enforce a pilot-district match on the server.
 
 ## Optional evidence contract
 
@@ -362,7 +152,9 @@ Plan now also includes optional_evidence_notes. Soil availability never gates de
 
 ## Explanations, questions and traces
 
-POST /v1/plans accepts language=en|hi|kn|te|ta|mr (default en). It adds agent_note and trace_id. Each dated action adds explanation_status, explanation_sources and the existing explanation text; unavailable generation leaves the deterministic reason intact. POST /v1/chat accepts question (1–2000 characters), plot (the same validated plan request) and language. It returns status=verified|unavailable, claims, facts, code-formatted facts, a trace_id, a visible note and the available structured plan. GET /v1/traces/{UUID} returns the compact execution summary; missing IDs return the project error envelope. See api-schema.json and AGENT.md for the complete contract and numeric limitations. No successful live-model example is available.
+POST /v1/plans accepts language=en|hi|kn|te|ta|mr (default en). It adds agent_note and trace_id. Each dated action adds explanation_status, explanation_sources and the existing explanation text; unavailable generation leaves the deterministic reason intact. POST /v1/chat accepts question (1–2000 characters), plot (the same validated plan request) and language. It returns status=verified|unavailable, claims, facts, code-formatted facts, a trace_id, a visible note and the available structured plan. GET /v1/traces/{UUID} requires Authorization: Bearer with the response-issued trace_access_token and returns the compact execution summary; missing/wrong capabilities and absent IDs return the same404 project error envelope. DELETE requires the same capability and returns204. See api-schema.json and AGENT.md for the complete contract and numeric limitations.
+
+Live Gemini plan and chat generation is UNVERIFIED without configured credentials, an explicit model and usable quota. Offline guardrail/provider checks do not establish successful live generation; deterministic reasons, values and calculations remain code-owned.
 
 ## Backtests
 
@@ -459,3 +251,24 @@ CORS_ORIGINS permits explicit HTTP origins; no wildcard or credential grant is u
 ```json
 {"api_version":"1.0","error":{"code":"source_unavailable","message":"Open-Meteo forecast: Source is disabled for this demonstration (retryable)","source":"Open-Meteo forecast","retryable":true,"request_id":"d9361fbd-5d8a-4ad9-8393-dc05df575406"}}
 ```
+
+
+## Historical climate comparison
+
+GET /v1/climate-normals requires finite latitude and longitude. It returns the complete 366-entry calendar-day summary for the requested location, the actual ERA5 grid location, model, period start_date=1991-01-01 and end_date=2020-12-31, units, source/fetch/licence metadata, coverage status and limitations. Each day has month_day, nullable values for temperature_2m_min, temperature_2m_max and precipitation_sum, a samples count for each field, and expected_samples. Ordinary days expect 30 samples; February 29 expects eight. A mean is available only when every expected year for that calendar day and variable is present. Missing means are null, never zero or interpolated.
+
+The source is a real Open-Meteo archive request for ERA5 daily extrema and precipitation, with UTC boundaries and explicit units. Invalid dates, duplicate/non-midnight timestamps, non-UTC offsets, malformed/nonfinite measurements, reversed extrema and negative rain produce typed source failures. Completed summaries use a process-local cache for seven days, with stale-while-revalidate for a further 30 days, four entries/pending requests and coalescing for identical coordinates. Cached fetch times are preserved; restart empties this cache. The route has its own expensive-request budgets; it shares the archive source transport and health counter with backtests. An upstream archive failure returns the normal source error envelope and never blocks a weather plan.
+
+The chart requests the comparison separately after a plan appears. It matches by UTC calendar month/day, so year-crossing forecasts and leap days do not shift the reference. Forecast bands/bars remain distinct from dashed historical-average lines. Source failure, loading, empty, partial and stale states remain visible. This endpoint does not supply facts to the agent or modify agronomic actions.
+
+## Private execution traces
+
+Plan responses include nullable trace_id/trace_access_token; chat responses include both strings. Keep the token private and out of URLs, logs and persistent browser storage. GET /v1/traces/{UUID} and DELETE /v1/traces/{UUID} require Authorization: Bearer <trace_access_token>. UUID alone is insufficient. Missing/wrong tokens and missing/deleted records return indistinguishable 404 envelopes; malformed identifiers return 422. Authorized deletion returns an empty 204 response. Responses never expose stored token digests. CORS permits Authorization and DELETE only for explicitly configured origins. Refresh an older client response to obtain a new protected trace; legacy rows have no HTTP access. This capability protects an execution summary, not a user account or a farm record.
+
+## Regional request validation
+
+POST /v1/plans and POST /v1/chat resolve the submitted coordinates against the packaged district boundaries before source or model work. Ocean, outside-pilot and uncertain boundary points return 422 in the existing error envelope. Local advice is limited to Bengaluru Rural, Kolar, Tumakuru, Chikkaballapura and Ramanagara. The server replaces any caller-supplied district with its resolved district; a client cannot select another district to enable its rules. Boundary-data failures return a typed retryable 503 without advice. Global weather evidence remains available separately.
+
+Sowing and reference planting dates must be from 2020-01-01 through one calendar year after the current UTC date. Invalid dates return a field-specific validation message. Chat messages must contain non-whitespace text; surrounding whitespace is stripped. These checks run before source requests.
+
+Climate requests have a separate 15/IP and 20/process per-minute budget. Backtests retain 5/IP and 10/process; combined plans/chat retain 10/IP and 10/process. All also consume the general 120/IP budget. Every limit is process-local and denied work returns 429 with Retry-After.

@@ -128,6 +128,58 @@
         }
       }
     },
+    "/v1/places/district": {
+      "get": {
+        "summary": "District",
+        "operationId": "district_v1_places_district_get",
+        "parameters": [
+          {
+            "name": "latitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "maximum": 90,
+              "minimum": -90,
+              "title": "Latitude"
+            }
+          },
+          {
+            "name": "longitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "maximum": 180,
+              "minimum": -180,
+              "title": "Longitude"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DistrictResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/evidence/flood": {
       "get": {
         "summary": "Flood",
@@ -163,6 +215,58 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/FloodEvidence"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/climate-normals": {
+      "get": {
+        "summary": "Climate Normals",
+        "operationId": "climate_normals_v1_climate_normals_get",
+        "parameters": [
+          {
+            "name": "latitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "maximum": 90,
+              "minimum": -90,
+              "title": "Latitude"
+            }
+          },
+          {
+            "name": "longitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "maximum": 180,
+              "minimum": -180,
+              "title": "Longitude"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClimateNormals"
                 }
               }
             }
@@ -605,6 +709,36 @@
             }
           }
         }
+      },
+      "delete": {
+        "summary": "Delete Trace",
+        "operationId": "delete_trace_v1_traces__trace_id__delete",
+        "parameters": [
+          {
+            "name": "trace_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Trace Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     }
   },
@@ -816,6 +950,10 @@
             "type": "string",
             "title": "Trace Id"
           },
+          "trace_access_token": {
+            "type": "string",
+            "title": "Trace Access Token"
+          },
           "language": {
             "type": "string",
             "enum": [
@@ -877,6 +1015,7 @@
         "type": "object",
         "required": [
           "trace_id",
+          "trace_access_token",
           "language",
           "status",
           "note"
@@ -1125,6 +1264,136 @@
         ],
         "title": "Claim"
       },
+      "ClimateNormals": {
+        "properties": {
+          "api_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Api Version",
+            "default": "1.0"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "attribution_url": {
+            "type": "string",
+            "title": "Attribution Url"
+          },
+          "attribution_text": {
+            "type": "string",
+            "title": "Attribution Text"
+          },
+          "licence_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Licence Url"
+          },
+          "modifications": {
+            "type": "string",
+            "title": "Modifications"
+          },
+          "request_url": {
+            "type": "string",
+            "title": "Request Url"
+          },
+          "fetched_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Fetched At"
+          },
+          "is_stale": {
+            "type": "boolean",
+            "title": "Is Stale",
+            "default": false
+          },
+          "data_status": {
+            "type": "string",
+            "enum": [
+              "complete",
+              "partial",
+              "empty"
+            ],
+            "title": "Data Status",
+            "default": "complete"
+          },
+          "missing_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Reasons",
+            "default": []
+          },
+          "location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "grid_location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model",
+            "default": "era5"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Start Date",
+            "default": "1991-01-01"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date",
+            "title": "End Date",
+            "default": "2020-12-31"
+          },
+          "units": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Units",
+            "default": {
+              "temperature_2m_min": "°C",
+              "temperature_2m_max": "°C",
+              "precipitation_sum": "mm"
+            }
+          },
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/NormalDay"
+            },
+            "type": "array",
+            "title": "Days"
+          },
+          "limitation": {
+            "type": "string",
+            "title": "Limitation",
+            "default": "ERA5 gridded historical averages, not plot measurements or an official station normal. Same-calendar-day means require all expected years per variable; missing means stay null. February 29 has eight samples. UTC days differ from Indian midnight days. Average rainfall is not a rain probability or an irrigation requirement."
+          }
+        },
+        "type": "object",
+        "required": [
+          "source",
+          "attribution_url",
+          "attribution_text",
+          "licence_url",
+          "modifications",
+          "request_url",
+          "fetched_at",
+          "location",
+          "grid_location",
+          "days"
+        ],
+        "title": "ClimateNormals"
+      },
       "CropWaterBalance": {
         "properties": {
           "coefficient": {
@@ -1197,6 +1466,93 @@
           "reason"
         ],
         "title": "DisabledRule"
+      },
+      "DistrictResult": {
+        "properties": {
+          "api_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Api Version",
+            "default": "1.0"
+          },
+          "location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "matched",
+              "ambiguous",
+              "unavailable"
+            ],
+            "title": "Status"
+          },
+          "district": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "District"
+          },
+          "supported_district": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "Bengaluru Rural",
+                  "Kolar",
+                  "Tumakuru",
+                  "Chikkaballapura",
+                  "Ramanagara"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supported District"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source",
+            "default": "geoBoundaries gbOpen India ADM2"
+          },
+          "source_url": {
+            "type": "string",
+            "title": "Source Url",
+            "default": "https://www.geoboundaries.org/api/current/gbOpen/IND/ADM2/"
+          },
+          "attribution": {
+            "type": "string",
+            "title": "Attribution",
+            "default": "geoBoundaries; Pathways Data Pvt. Ltd. and lgdirectory.gov.in"
+          },
+          "licence_url": {
+            "type": "string",
+            "title": "Licence Url",
+            "default": "https://opendatacommons.org/licenses/odbl/1-0/"
+          },
+          "boundary_year": {
+            "type": "integer",
+            "title": "Boundary Year",
+            "default": 2021
+          },
+          "limitation": {
+            "type": "string",
+            "title": "Limitation",
+            "default": "Approximate lookup using simplified 2021 district boundaries. Names and boundaries may have changed; confirm near a boundary."
+          }
+        },
+        "type": "object",
+        "required": [
+          "location",
+          "status"
+        ],
+        "title": "DistrictResult"
       },
       "ErrorDetail": {
         "properties": {
@@ -2150,6 +2506,47 @@
         ],
         "title": "MandiPrice"
       },
+      "NormalDay": {
+        "properties": {
+          "month_day": {
+            "type": "string",
+            "title": "Month Day"
+          },
+          "values": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Values"
+          },
+          "samples": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Samples"
+          },
+          "expected_samples": {
+            "type": "integer",
+            "title": "Expected Samples"
+          }
+        },
+        "type": "object",
+        "required": [
+          "month_day",
+          "values",
+          "samples",
+          "expected_samples"
+        ],
+        "title": "NormalDay"
+      },
       "Place": {
         "properties": {
           "latitude": {
@@ -2329,7 +2726,15 @@
           "agent_note": {
             "type": "string",
             "title": "Agent Note",
-            "default": "Agent explanations unavailable."
+            "default": "Explanations unavailable."
+          },
+          "forecast_reliability": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Forecast Reliability",
+            "default": []
           },
           "trace_id": {
             "anyOf": [
@@ -2341,6 +2746,17 @@
               }
             ],
             "title": "Trace Id"
+          },
+          "trace_access_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trace Access Token"
           },
           "optional_evidence_notes": {
             "items": {

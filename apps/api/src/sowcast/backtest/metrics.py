@@ -149,6 +149,29 @@ def uncertainty_note(scores: tuple[LeadScore, ...]) -> str:
     )
 
 
+def reliability_sentences(
+    result: BacktestResult, days: tuple[tuple[int, date], ...]
+) -> tuple[str, ...]:
+    if result.is_stale or result.data_status == "empty":
+        return ()
+    sentences = []
+    for lead, valid_date in days:
+        score = next((s for s in result.scores if s.lead_days == lead), None)
+        if score is None:
+            continue
+        rain = next((d for d in score.rain_definitions if d.definition == "gt0"), None)
+        if rain is None or not rain.paired_days:
+            continue
+        sentences.append(
+            f"{valid_date.isoformat()}: GFS model {score.lead_hours}h rain/no-rain (>0 mm) "
+            f"agreed with ERA5 on {rain.correct_days} of {rain.paired_days} paired days at this "
+            f"location, {result.start_date.isoformat()} to {result.end_date.isoformat()}; "
+            f"always-majority baseline {rain.majority_correct_days} of {rain.paired_days}. "
+            "This is a different model from the plan forecast; treat rain timing as uncertain."
+        )
+    return tuple(sentences)
+
+
 def assess(
     forecast: HistoryEvidence,
     reference: HistoryEvidence,

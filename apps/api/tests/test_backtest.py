@@ -9,7 +9,13 @@ import httpx
 import pytest
 
 from sowcast.api.app import create_app
-from sowcast.backtest.metrics import assess, brier_score, rain_score, wilson95
+from sowcast.backtest.metrics import (
+    assess,
+    brier_score,
+    rain_score,
+    reliability_sentences,
+    wilson95,
+)
 from sowcast.backtest.service import BacktestService
 from sowcast.backtest.store import BacktestStore
 from sowcast.sources.history import HistoryClient
@@ -410,3 +416,41 @@ async def test_backtest_tool_has_citable_windowed_metrics():
         )
         assert verify_quantities((claim,), facts).passed
         assert not verify_quantities((claim.model_copy(update={"date": str(START)}),), facts).passed
+
+
+@pytest.mark.asyncio
+async def test_cached_lookup_is_read_only_and_never_requests_sources(tmp_path):
+    calls = []
+
+    def counting(request):
+        calls.append(request.url.host)
+        return respond(request)
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(counting)) as http:
+        client = HistoryClient(SourceTransport(http))
+        store = BacktestStore(str(tmp_path / "jobs.sqlite3"))
+        service = BacktestService(client, client, store, lambda: NOW)
+        assert await service.cached(LOCATION) is None
+        assert calls == []
+        result = await service.get(LOCATION)
+        assert len(calls) == 2
+        assert await service.cached(LOCATION) == result
+        assert await service.cached(Location(latitude=13, longitude=78)) is None
+        assert len(calls) == 2
+
+
+@pytest.mark.asyncio
+async def test_reliability_sentences_use_only_score_fields():
+    forecast, reference = await evidence()
+    result = assess(forecast, reference, START, END, NOW)
+    gt0 = result.scores[2].rain_definitions[0]
+    days = ((3, date(2026, 11, 4)), (9, date(2026, 11, 10)))
+    sentences = reliability_sentences(result, days)
+    assert len(sentences) == 1
+    assert sentences[0].startswith("2026-11-04: GFS model 72h rain/no-rain (>0 mm)")
+    assert f"on {gt0.correct_days} of {gt0.paired_days} paired days" in sentences[0]
+    assert f"baseline {gt0.majority_correct_days} of {gt0.paired_days}" in sentences[0]
+    assert f"{START} to {END}" in sentences[0]
+    assert "different model from the plan forecast" in sentences[0]
+    assert reliability_sentences(result.model_copy(update={"is_stale": True}), days) == ()
+    assert reliability_sentences(result.model_copy(update={"data_status": "empty"}), days) == ()

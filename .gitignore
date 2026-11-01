@@ -9,3 +9,9 @@ node_modules/
 dist/
 test-results/
 .sowcast/
+.build/
+.claude/
+*.zip
+release/
+.env.*
+!.env.example

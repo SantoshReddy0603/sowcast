@@ -12,6 +12,13 @@ class BacktestStore:
         self.database = location if isinstance(location, Database) else Database(location)
         self.owns_database = not isinstance(location, Database)
 
+    async def lookup(self, key: str) -> BacktestResult | None:
+        async with self.database.transaction() as session:
+            row = await session.get(BacktestRecord, key)
+            if row and 0 <= time.time() - row.saved < 86400:
+                return BacktestResult.model_validate_json(row.body)
+        return None
+
     async def claim(self, key: str, owner: str) -> BacktestResult | bool:
         now = time.time()
         async with self.database.transaction(write=True) as session:

@@ -20,9 +20,9 @@ The [official Previous Runs documentation](https://open-meteo.com/en/docs/previo
 
 Live verification in this slice returned 14 daily and 336 hourly forecast entries through the implemented Python CLI. A separate request to `https://previous-runs-api.open-meteo.com/v1/forecast` used the same caller coordinates, `hourly=temperature_2m_previous_day1,precipitation_previous_day1`, `past_days=2`, `forecast_days=1`, `timezone=UTC`; it returned 72 non-null entries for each requested variable. This confirms endpoint availability for a short window, not completeness over a 60-day window. The implemented 60-day comparison and its actual boundary gap are documented in BACKTEST.md.
 
-The ERA5 archive adapter is implemented for backtests. Climate-normal baselines remain unimplemented. Geocoding, flood, NASA POWER, SoilGrids and the key-gated Agmarknet adapter are described below, including observed gaps and unverified authenticated market behavior. No substitute prices, soil properties or observations are provided.
+The ERA5 archive adapter supports backtests and the separate 1991–2020 historical chart baseline. Geocoding, flood, NASA POWER, SoilGrids and the key-gated Agmarknet adapter are described below, including observed gaps and unverified authenticated market behavior. No substitute prices, soil properties or observations are provided.
 
-## Terms and schema audit
+## Terms and response schema
 
 Checked on 2026-10-30 by opening the official [home](https://open-meteo.com/), [terms](https://open-meteo.com/en/terms), [pricing](https://open-meteo.com/en/pricing), [licence](https://open-meteo.com/en/licence) and [forecast documentation](https://open-meteo.com/en/docs) pages.
 
@@ -95,3 +95,21 @@ ERA5 is documented as updating daily with five days' delay. A 60-day comparison 
 On 2026-10-31, a further real request at Kolar (13.13768, 78.12999) returned a typed SoilGrids HTTP 503 failure. The visible plan remained available. This is a later availability observation, not evidence that earlier nulls were corrected or that new soil values exist.
 
 Hosted storage/API provider limits, official pricing URLs and the 2026-10-31 check are recorded in RUNBOOK.md. Database hosting is not an agronomic evidence source and no provider account was created. The demonstration failure switch is off by default and emits a typed error before any upstream request; it never supplies a source measurement.
+
+
+## Packaged district boundaries
+
+Automatic district identification uses [geoBoundaries gbOpen India ADM2](https://www.geoboundaries.org/api/current/gbOpen/IND/ADM2/), boundary ID IND-ADM2-76128533, representing 2021. The published metadata names Pathways Data Pvt. Ltd. and lgdirectory.gov.in as the source and Open Data Commons Open Database License 1.0 as the licence. The [pinned simplified GeoJSON](https://github.com/wmgeolab/geoBoundaries/raw/9469f09/releaseData/gbOpen/IND/ADM2/geoBoundaries-IND-ADM2_simplified.geojson) was downloaded on 2026-10-31. The API metadata declares 736 units; the actual downloaded file has 735 features. Missing coverage is never filled by inference.
+
+The packaged files are apps/api/src/sowcast/geography/data/india-districts.json and provenance.json. Only insignificant JSON whitespace was removed; all source geometry and properties are retained. Provenance includes the original and packaged SHA-256 hashes, the source URLs, retrieval timestamp, licence and actual feature count. Data is redistributed under [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/). The lookup response and UI retain attribution and the licence link.
+
+The backend loads the polygons once, filters by bounding boxes and uses point-in-polygon checks with hole support. Edge and overlapping matches require manual confirmation. Lookup sends no coordinates to an external geocoding provider and makes no network request at runtime. Simplified historical boundaries are approximate; recent renamings or boundary changes are not asserted. Non-pilot district names remain as written in the source. Identifying an administrative area does not establish field conditions or activate additional crop rules. The existing five-district agronomic scope remains.
+
+
+## ERA5 historical chart reference
+
+The chart uses 1991–2020, the current 30-year reference period described by [WMO](https://community.wmo.int/site/knowledge-hub/programmes-and-initiatives/climate-services/wmo-climatological-normals). These are application-computed daily reanalysis averages, not WMO-certified station normals. The [Open-Meteo Historical Weather API](https://open-meteo.com/en/docs/historical-weather-api) documents consistent multidecadal ERA5 coverage, daily extrema/precipitation and its approximately 0.25-degree grid. Forecast best-match grids can differ from the historical grid; both requested and historical grid coordinates remain visible. UTC daily boundaries are retained.
+
+A real Kolar request at 13.14, 78.13 returned 10,958 daily rows over 1991-01-01 through 2020-12-31, with zero nulls across the three selected fields, on 2026-10-31. Its ERA5 grid was 13.25, 78.25. The direct request took 1.23 seconds locally. The API summary completed in 1.296 seconds on its first request; the next request reused the summary without another upstream call. For October 31 the computed average daily low/high were 18.97 and 26.403333333333332 degrees Celsius and average precipitation was 4.846666666666667 mm, with 30 samples for each field. These are observed local verification results, not hosted latency guarantees.
+
+Means use arithmetic averaging by calendar day with math.fsum. Requiring every expected sample is a conservative application policy; no missing-year imputation, smoothing or leap-day interpolation is applied. A daily rainfall average includes dry and wet years and is not a probability or a prediction of drizzle. No station calibration, normal-based risk threshold or irrigation calculation is derived from this comparison. Real source data and request/fetch metadata are retained only under tests/recorded for offline regression; runtime fetches the service and never reads those recordings. A 30-year request may consume more than one provider billing unit; the single HTTP-attempt count is not a quota-cost claim.
