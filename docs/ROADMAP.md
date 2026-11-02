@@ -1,10 +1,10 @@
 # Remaining work
 
-## Verification before public use
+## Current delivery
 
-Live Gemini availability and successful generation require a configured key, model and usable quota; they remain UNVERIFIED in this installation.
+The web app is available on Render at https://sowcast-web.onrender.com; its API is https://sowcast-api-820y.onrender.com. Gemini plan/chat, voice and browser flows have been tested successfully. Latest main API/web GitHub Actions jobs pass; the manual-only browser job was skipped.
 
-Render, Neon and Vercel configuration is prepared but not deployed. Hosted TLS, cold starts, quota behavior, post-restart persistence and provider recovery need real verification after an authorized deployment. GitHub workflow definitions have not run remotely. Free-plan terms must be rechecked at that time.
+The README describes the current setup and supported scope. Further work below extends coverage rather than describing those completed checks as missing.
 
 ## Product and data
 

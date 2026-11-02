@@ -24,7 +24,7 @@ GET /v1/places accepts name and an optional supported language. GET /v1/evidence
 
 ## Real request examples
 
-The following requests ran against local servers on 1 November 2026 at latitude 13.14, longitude 78.13. Forecast, flood and climate requests reached their public upstream sources. Backtest returned an existing real result computed earlier that day; its 0.010-second response is a database/cache retrieval, not a cold recompute. Gemini and authenticated market access remain UNVERIFIED because no keys are configured. The sowing date is a calculation scenario, not a verified farm observation.
+The following requests ran against local servers on 1 November 2026 at latitude 13.14, longitude 78.13. Forecast, flood and climate requests reached their public upstream sources. Backtest returned an existing real result computed earlier that day; its 0.010-second response is a database/cache retrieval, not a cold recompute. The local requests shown here used no model or market keys; those historical responses do not describe deployed provider configuration. The sowing date is a calculation scenario, not a verified farm observation.
 
 POST /v1/plans body:
 
@@ -154,7 +154,7 @@ Plan now also includes optional_evidence_notes. Soil availability never gates de
 
 POST /v1/plans accepts language=en|hi|kn|te|ta|mr (default en). It adds agent_note and trace_id. Each dated action adds explanation_status, explanation_sources and the existing explanation text; unavailable generation leaves the deterministic reason intact. POST /v1/chat accepts question (1–2000 characters), plot (the same validated plan request) and language. It returns status=verified|unavailable, claims, facts, code-formatted facts, a trace_id, a visible note and the available structured plan. GET /v1/traces/{UUID} requires Authorization: Bearer with the response-issued trace_access_token and returns the compact execution summary; missing/wrong capabilities and absent IDs return the same404 project error envelope. DELETE requires the same capability and returns204. See api-schema.json and AGENT.md for the complete contract and numeric limitations.
 
-Live Gemini plan and chat generation is UNVERIFIED without configured credentials, an explicit model and usable quota. Offline guardrail/provider checks do not establish successful live generation; deterministic reasons, values and calculations remain code-owned.
+Gemini plan and chat have been tested successfully on the deployed app. The API still requires a configured key, explicit model and usable quota for each generation. Offline guardrail/provider checks exercise separate failure paths; deterministic reasons, values and calculations remain code-owned.
 
 ## Backtests
 
@@ -240,7 +240,7 @@ See BACKTEST.md for UTC hour-ending aggregation, source delay, baselines, interv
 
 GET /health returns {"status":"ok"} without a source or database request. GET /ready returns {"status":"ready"} after querying storage. Host health and opt-in keep-alive use /health; manual readiness is a normal limited request. Startup migrates before accepting traffic. Database failures use 503/storage_unavailable with a safe message and request ID.
 
-Limits apply over a sliding 60-second process-local window. General requests and combined plan/chat/backtest budgets are documented in RUNBOOK.md. Limit errors use 429, Retry-After and X-Request-ID; CORS exposes these headers for exact configured origins. A real one-request-budget server returned 200 and then:
+Limits apply over a sliding 60-second process-local window. The general budget, combined plan/chat budget, separate backtest budget and separate climate budget are documented in RUNBOOK.md. Limit errors use 429, Retry-After and X-Request-ID; CORS exposes these headers for exact configured origins. A real one-request-budget server returned 200 and then:
 
 ```json
 {"api_version":"1.0","error":{"code":"rate_limited","message":"Request limit reached; retry after the indicated delay.","source":"Sowcast API","retryable":true,"request_id":"17145910-7f19-40ed-b169-58b4017042ff"}}

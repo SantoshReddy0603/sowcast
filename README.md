@@ -164,26 +164,18 @@ Read [AGRONOMY](docs/AGRONOMY.md), [AGENT](docs/AGENT.md), [BACKTEST](docs/BACKT
 
 ## Screenshots
 
-The existing [Plan](docs/images/plan.png) and [Reliability](docs/images/reliability.png) PNGs were inspected. Plan is stale: it says the historical baseline service is not implemented, while the current app supports the ERA5 comparison. Reliability is a historical capture for 12.97, 77.59 and 2026-08-27 to 2026-10-25; it is not evidence of today's data or the Kolar demo plot. These files have not been replaced.
+Captured from the current app running locally on 2 November 2026 with real public-source responses. Scenario: Kolar, latitude 13.14, longitude 78.13; maize already growing, sowing date 1 October 2026; FAO reference estimates enabled.
 
-To refresh them:
+### Plan
 
-1. Run the current API and web from the same revision. Use real source responses and an available model only if its explanation is to be shown.
-2. Choose and record the demonstration coordinates, crop, sowing status/date and FAO-reference choice. Wait for the forecast, historical comparison and optional-source status to settle.
-3. Capture Plan with a task's **Why this task?** disclosure open, the historical chart/legend and fetch-time footer visible. Keep real missing or unavailable states visible.
-4. Open Reliability, refresh its actual result and record the displayed location, window, rain definition, sample counts and source times. Do not label this as a score for the plan forecast.
-5. Check desktop and 390px widths for clipping, then save the selected real captures to docs/images/plan.png and docs/images/reliability.png and update their captions with the captured scenario. Keep each image labelled with the scenario and date it actually shows.
+The 14-day plan shows the current forecast, ERA5 historical comparison and the first task's evidence disclosure. This local capture uses the evidence-only explanation state.
+
+![Plan with forecast, historical comparison and dated tasks](docs/images/plan.png)
+
+### Reliability
+
+GFS-versus-ERA5 comparison for the same requested location, 29 August–27 October 2026, with seven forecast leads and the at-least-1-mm rain definition selected.
+
+![Reliability with rain agreement, sample counts, baselines and temperature error](docs/images/reliability.png)
 
 Application logs use structlog JSON on stderr. API records contain the server request ID, route template, method, status, source name and elapsed milliseconds. Source attempts record the source name, status or safe error code, attempt count and latency, inheriting the request ID. Raw paths, query strings, headers, bodies and provider payloads are excluded. Unhandled application errors return a fixed internal_error envelope without logging exception details. CLI evidence remains JSON on stdout. Run uvicorn with --no-access-log so its separate access logger does not print raw request targets. Logging behavior follows the context-variable guidance at https://www.structlog.org/en/stable/contextvars.html.
-
-## Other documents requiring alignment
-
-The following statements elsewhere need alignment:
-
-- **docs/TESTING.md:53,55:** the first paragraph records passing main checks, while the next calls remote execution unverified; the browser-run wording does not include the confirmed successful flows. Keep historical timings labelled as such.
-- **docs/RUNBOOK.md:27,31,33,36–38:** says no hosted account/database or deployment, names Vercel for the web and describes a future web deployment there. The live web and compiled API addresses are on Render. Its database-provider statements must be checked against the actual deployment before being retained.
-- **docs/RUNBOOK.md:39:** precomputes 12.97, 77.59, while docs/DEMO.md:7,27 uses 13.14, 78.13. The cache key uses exact coordinates, so the warm-up does not prepare that demo location.
-- **docs/DEMO.md:6,28:** one correction plus one HTTP retry can imply more than the total two-request plan cap; fetch time is in the section footer rather than inside each action disclosure. Its conditional fallback/voice instructions remain useful, but it does not record the confirmed successful deployment tests or their dates.
-- **docs/DESIGN.md:21:** its screenshot references do not identify the stale Plan baseline message or distinguish historical captures from the current UI.
-- **docs/AGENT.md:21,40:** sowing answers are not guaranteed to retrieve a backtest; voice and deployment verification statements need the confirmed test context without implying physical-phone coverage. Retain conditional missing-credential behavior and distinguish test results from product scope.
-- **docs/API.md:27,157,243:** the older examples predate the confirmed deployed Gemini tests, and the verification text needs that dated context; the budget wording should distinguish combined plan/chat from separate backtest and climate budgets, as line 274 already does.

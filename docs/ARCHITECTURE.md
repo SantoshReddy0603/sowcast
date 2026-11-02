@@ -65,13 +65,15 @@ Trace writes redact credential-shaped content, cap payloads and retain 1,000 sum
 
 The outer request-ID layer wraps CORS and rate limiting so limit errors carry both required headers and the existing error body. Climate, backtest and combined plan/chat requests have separate per-IP and process-wide expensive-route budgets. Default budgets use sliding 60-second windows and bounded maps; /health and OPTIONS are exempt. /ready is a limited database probe. Peer IP is taken from the connection, not arbitrary forwarded headers. A reverse proxy may group clients under one peer; process-wide expensive-route limits still bound aggregate requests. Multi-worker limits multiply; they are not a distributed account quota.
 
-The web uses same-origin proxies locally and a public API origin compiled into its deployment build. Explicit server CORS grants the production web origin. Render/Vercel files are configuration only; no deployment occurred. Root Compose runs pinned non-root API/web images and PostgreSQL. Render's health check and optional warm workflow request /health to avoid repeatedly waking the database. Manual pre-demo readiness checks /ready. Deployment and free-tier constraints are in RUNBOOK.md.
+The web uses same-origin proxies locally and a public API origin compiled into its deployment build. Explicit server CORS grants the production web origin. The web app runs on Render at https://sowcast-web.onrender.com and calls the Render API at https://sowcast-api-820y.onrender.com. The Vercel configuration file is not the current hosting setup. Root Compose runs pinned non-root API/web images and PostgreSQL. Render's health check and optional warm workflow request /health to avoid repeatedly waking the database. Manual pre-demo readiness checks /ready. Deployment and free-tier constraints are in RUNBOOK.md.
 
 The failure switch is server-side configuration selecting one real typed error path; it never returns fabricated values or adds a public simulation endpoint. Restarting the API clears source caches so the switch is visible. It is empty by default.
 
-## Verification limits
+## Verification
 
-Local tests cover empty SQLite and PostgreSQL migrations, persistence, limits/CORS, sources, agronomy, guardrails and backtest behavior. Containers built and reported healthy; a proxied real-weather plan returned 14 actions. Local restart-to-readiness was measured, not remote cold start. Live Gemini generation is UNVERIFIED without credentials and quota; offline provider tests establish only the implemented boundaries. Hosted database/network behavior, physical speech, load, authorization, independent fluency review and field efficacy remain unverified.
+The latest main API and web GitHub Actions jobs pass. The browser job is manual-only and was skipped. Current local checks report 371 passed and one PostgreSQL skip without TEST_DATABASE_URL, with Ruff, mypy, web lint, types and build clean. Earlier dedicated runs exercised SQLite and PostgreSQL migrations and local container persistence.
+
+Gemini plan/chat, voice and browser flows have been tested successfully on the deployed app. These checks are distinct from field calibration or a score for the live plan forecast. The documented local restart and backtest timings remain local measurements.
 
 ## Historical reference and trace access
 
