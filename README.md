@@ -1,18 +1,55 @@
 # Sowcast
 
-Sowcast retrieves source evidence for a selected plot, computes cited crop review tasks and exposes Plot, Plan, Ask and Reliability. Rules decide actions. Missing values remain missing. This is decision support; confirm field conditions with a local extension officer.
+[Open the live app](https://sowcast-web.onrender.com) · [API](https://sowcast-api-820y.onrender.com)
+
+Sowcast is decision support for Kolar, Tumakuru, Chikkaballapura, Bengaluru Rural and Ramanagara. Rules decide dated crop-review tasks and calculations; the model explains the available evidence. Every evidence figure retains its source. Forecast reliability is measured by comparing GFS fixed-lead forecasts with ERA5 reanalysis at a requested location, separately from the forecast used by the plan. Confirm field conditions with a local extension officer.
+
+- **Plot:** choose coordinates, crop and sowing status; identify the pilot district.
+- **Plan:** read the dated 14-day weather evidence and conditional crop-water estimates; open **Why this task?** for inputs, rule version and citations. Fetch times are shown in section footers.
+- **Ask:** request evidence-linked explanations in six answer languages and inspect or delete the execution trace.
+- **Reliability:** inspect GFS-versus-ERA5 results, sample counts, uncertainty intervals and majority-class baselines.
 
 ## Quick start
 
-Requirements: Python 3.12 and Node 22. Set both GEMINI_API_KEY and GEMINI_MODEL to enable AI explanations (plan explanations and Ask); there is no default model. Without them the app returns the evidence-only fallback, and Plan and the evidence values still work. In an activated Python environment, run from the repository root:
+Use Python **3.12** and Node **22**. Select the Python 3.12 interpreter as `python` before starting; creating an environment with Python 3.11 does not satisfy the package requirement. No forecast key is required for Open-Meteo's free non-commercial service. Set both GEMINI_API_KEY and GEMINI_MODEL in the API environment to enable model explanations; there is no default model.
 
 ```sh
-python -m pip install -r apps/api/requirements.lock -e "apps/api[dev]"
-python -m sowcast migrate
-python -m sowcast serve
+git clone https://github.com/SantoshReddy0603/sowcast.git
+cd sowcast
+python --version
+node --version
+python -m venv ../sowcast-venv
 ```
 
-In another terminal:
+Check that the version commands report Python 3.12 and Node 22. Activate the environment:
+
+| Terminal | Command |
+| --- | --- |
+| Windows PowerShell | `& ../sowcast-venv/Scripts/Activate.ps1` |
+| Linux or macOS shell | `. ../sowcast-venv/bin/activate` |
+
+From the repository root, install the package. The metadata directory is outside the checkout; setuptools resolves egg-base from apps/api.
+
+```sh
+python -c "from pathlib import Path; Path('../sowcast-build').mkdir(exist_ok=True)"
+python -B -m pip install -r apps/api/requirements.lock -e "apps/api[dev]" --config-settings=--global-option=egg_info --config-settings=--global-option=--egg-base=../../../sowcast-build
+```
+
+Create `../sowcast-local.env` with these local storage settings. If the file already exists, update these entries without replacing any credentials it contains.
+
+```dotenv
+SOWCAST_TRACE_DB=../sowcast-data/traces.sqlite3
+SOWCAST_BACKTEST_DB=../sowcast-data/backtest.sqlite3
+```
+
+Add GEMINI_API_KEY and GEMINI_MODEL there only if model explanations are needed. Keep this file outside source control. In the activated environment, from the repository root:
+
+```sh
+python -B -m sowcast migrate --env-file ../sowcast-local.env
+python -B -m sowcast serve --env-file ../sowcast-local.env
+```
+
+Keep that terminal running. In another terminal, from the same repository root:
 
 ```sh
 cd apps/web
@@ -20,14 +57,9 @@ npm ci
 npm run dev
 ```
 
-Open http://127.0.0.1:5173. The development proxy reaches the API at port 8000. No forecast key is required for Open-Meteo's free non-commercial service. The API exposes /health, database /ready, /health/sources, /docs and /openapi.json. The CLI also works after installation:
+Open http://127.0.0.1:5173. The development proxy reaches the API at port 8000. The API exposes /health, database /ready, /health/sources, /docs and /openapi.json. Local SQLite files and Python installation metadata stay outside the checkout; node_modules is ignored.
 
-```sh
-python -m sowcast --latitude 12.97 --longitude 77.59
-python -m sowcast backtest --latitude 12.97 --longitude 77.59 --scheduled
-```
-
-Commands are shell-independent once the chosen environment is active. Tests and builds are run on Windows; the API and web containers build and run on Linux through Docker. Native Linux/macOS setup outside containers is untested.
+The Windows clean-clone check with Python 3.12 and Node 22 passed installation, migration, npm ci, API /ready and the web page.
 
 ## Environment
 
@@ -57,6 +89,8 @@ Commands are shell-independent once the chosen environment is active. Tests and 
 ## Layout and request flow
 
 apps/api contains typed source clients, shared caching, pure agronomy, model/guardrail code, backtests, API and storage migrations. apps/web contains four React views, two hand-built SVG charts (WeatherChart.tsx, Reliability.tsx) and a Leaflet plot map (PlotMap.tsx). docs contains citations, contracts, operations and limits. Root Docker Compose, render.yaml and .github/workflows contain delivery configuration.
+
+Only forecast evidence feeds the action rules. ERA5 supplies historical comparison and backtest reference data; NASA POWER remains a separate optional retrospective cross-check.
 
 ```mermaid
 flowchart LR
@@ -95,28 +129,61 @@ python -m mypy --config-file apps/api/pyproject.toml apps/api/src
 python -m pytest -c apps/api/pyproject.toml apps/api/tests -q
 ```
 
+Current results: **371 passed, 1 skipped** (the PostgreSQL case without TEST_DATABASE_URL); Ruff and mypy are clean; web lint, types and build are clean. Latest main GitHub Actions API and web jobs pass. The browser job is manual-only and was skipped. Browser test flows have also been run successfully.
+
 From apps/web run npm run typecheck, npm run lint and npm run build. With both servers available, npm run test:browser, node tests/ask.mjs, node tests/reliability.mjs, npm run test:district, npm run test:climate and npm run test:ragi exercise real-source flows. Playwright is development-only. PostgreSQL tests skip unless TEST_DATABASE_URL is configured. See [TESTING](docs/TESTING.md) for recorded versus live inputs and results.
 
 ## Containers and deployment
 
 Set a new URL-safe POSTGRES_PASSWORD locally, then run docker compose build and docker compose up -d --wait. Open http://127.0.0.1:8080. API/web run as non-root users; base images are pinned by digest. docker compose stop retains records. Do not remove the database volume unless you intend to erase them.
 
-The prepared deployment uses Render Free for the API, Neon PostgreSQL for persistent records and Vercel Hobby for the web. No deployment has been performed. [RUNBOOK](docs/RUNBOOK.md) gives exact steps, environment settings, current free-plan limits, health checks, optional keep-alive and recovery. GitHub Actions definitions cover API checks with PostgreSQL and web lint/types/build; a manual live-source browser job uses the Playwright development dependency. The workflows have not run on GitHub here.
+The web app is hosted on Render at https://sowcast-web.onrender.com. Its compiled API origin is https://sowcast-api-820y.onrender.com, also on Render. DATABASE_URL configures API storage; local development uses the separate SQLite paths above.
 
-## Limitations
+Gemini plan and chat have been tested successfully on the deployed app. Voice and browser flows have also been tested successfully. These checks do not change the language and rule scope below.
 
-- Key limits: rate limits and evidence caches are process-local; the historical chart baseline is ERA5 1991–2020 gridded calendar-day averages, not official station normals; the published Reliability results (docs/BACKTEST.md) come from one location (12.97, 77.59) and one 60-day window (2026-08-27 to 2026-10-25), comparing the GFS model, not the plan's best-match blend, with ERA5; Sowcast is decision support and does not replace local extension officers.
-- Language scope: chat answers can be requested in en, hi, kn, te, ta and mr. Claim text is limited to a fixed per-language vocabulary (guardrails/prose.py), and rendered chat facts use that script's digits while unit symbols stay as supplied (apps/api/src/sowcast/i18n/render.py). The interface (docs/DESIGN.md), plan reasons, units and citations are English. Non-English output has not been reviewed by fluent readers. Voice input and spoken replies are unverified on real devices.
-- SoilGrids returned nulls at target-region samples and later HTTP 503; it is optional and supplies no defaults.
-- NASA POWER is a delayed retrospective cross-check, never forecast evidence. The client uses a conservative seven-day lag; values can still be null.
-- Ragi and tur have no verified crop-specific water-balance rule. Other FAO values are reference estimates with the documented regional/stage limits.
-- The model writes only constrained, quantity-free explanatory text; code renders values. Live Gemini generation is unverified without a configured key, model and quota; offline tests do not establish provider availability.
-- Reliability does not compare plot instruments. Both rain definitions show paired counts, base rates, majority baselines and approximate intervals. No lead ranking is established.
-- Storage coordinates leases through one database. There is no account authentication; trace read/delete require a per-trace capability token, and UUIDs alone grant no access. Hosted TLS, cold starts and persistence have not been exercised.
-- The chart shows coverage counts and explicit missing/stale/error states. This software does not prescribe irrigation amounts.
+[RUNBOOK](docs/RUNBOOK.md) contains environment and operational instructions; its hosting and verification status need the corrections listed at the end of this file.
+
+## Evidence and rules
+
+The interface, deterministic plan reasons and citations are in English. Answers are selectable in English, Hindi, Kannada, Telugu, Tamil and Marathi (en, hi, kn, te, ta, mr). Code formats answer values using the selected script's digits and the supplied unit symbols. The model supplies quantity-free explanations from the per-language vocabulary.
+
+The agent has six tools: get_forecast, get_soil, get_mandi_prices, run_risk_assessment, get_backtest and get_flood_signal. Forecast, flood and backtest results supply citable numeric facts. Sowing answers may use a backtest when it has been retrieved.
+
+Paddy, maize, groundnut and tomato have conditional FAO reference crop-water estimates using the documented stage and regional context. Ragi and tur have no water-balance rule. The enabled thermal screen is paddy flowering heat above 35 C. SoilGrids and NASA POWER are optional evidence; soil values can be null, and NASA provides delayed retrospective observations.
+
+The historical chart compares the forecast with ERA5 1991–2020 gridded calendar-day averages, rather than station normals. Reliability scores GFS against ERA5 reanalysis, separately from the plan's own best-match forecast. Its rain definitions include paired counts, base rates, majority baselines and approximate intervals.
+
+Rate limits and evidence caches are process-local. Trace access and deletion use a per-trace capability token.
+
+## Limits
+
+- Reliability shown for one location and window so far
+- Decision support; does not replace extension officers
 
 Read [AGRONOMY](docs/AGRONOMY.md), [AGENT](docs/AGENT.md), [BACKTEST](docs/BACKTEST.md), [DATA_SOURCES](docs/DATA_SOURCES.md), [API](docs/API.md), [DEMO](docs/DEMO.md) and [ROADMAP](docs/ROADMAP.md) for details.
 
-Real local-container screenshots: [Plan](docs/images/plan.png) and [Reliability](docs/images/reliability.png). They show actual source responses from verification, not an application fallback.
+## Screenshots
+
+The existing [Plan](docs/images/plan.png) and [Reliability](docs/images/reliability.png) PNGs were inspected. Plan is stale: it says the historical baseline service is not implemented, while the current app supports the ERA5 comparison. Reliability is a historical capture for 12.97, 77.59 and 2026-08-27 to 2026-10-25; it is not evidence of today's data or the Kolar demo plot. These files have not been replaced.
+
+To refresh them:
+
+1. Run the current API and web from the same revision. Use real source responses and an available model only if its explanation is to be shown.
+2. Choose and record the demonstration coordinates, crop, sowing status/date and FAO-reference choice. Wait for the forecast, historical comparison and optional-source status to settle.
+3. Capture Plan with a task's **Why this task?** disclosure open, the historical chart/legend and fetch-time footer visible. Keep real missing or unavailable states visible.
+4. Open Reliability, refresh its actual result and record the displayed location, window, rain definition, sample counts and source times. Do not label this as a score for the plan forecast.
+5. Check desktop and 390px widths for clipping, then save the selected real captures to docs/images/plan.png and docs/images/reliability.png and update their captions with the captured scenario. Keep each image labelled with the scenario and date it actually shows.
 
 Application logs use structlog JSON on stderr. API records contain the server request ID, route template, method, status, source name and elapsed milliseconds. Source attempts record the source name, status or safe error code, attempt count and latency, inheriting the request ID. Raw paths, query strings, headers, bodies and provider payloads are excluded. Unhandled application errors return a fixed internal_error envelope without logging exception details. CLI evidence remains JSON on stdout. Run uvicorn with --no-access-log so its separate access logger does not print raw request targets. Logging behavior follows the context-variable guidance at https://www.structlog.org/en/stable/contextvars.html.
+
+## Other documents requiring alignment
+
+The following statements elsewhere need alignment:
+
+- **docs/TESTING.md:53,55:** the first paragraph records passing main checks, while the next calls remote execution unverified; the browser-run wording does not include the confirmed successful flows. Keep historical timings labelled as such.
+- **docs/RUNBOOK.md:27,31,33,36–38:** says no hosted account/database or deployment, names Vercel for the web and describes a future web deployment there. The live web and compiled API addresses are on Render. Its database-provider statements must be checked against the actual deployment before being retained.
+- **docs/RUNBOOK.md:39:** precomputes 12.97, 77.59, while docs/DEMO.md:7,27 uses 13.14, 78.13. The cache key uses exact coordinates, so the warm-up does not prepare that demo location.
+- **docs/DEMO.md:6,28:** one correction plus one HTTP retry can imply more than the total two-request plan cap; fetch time is in the section footer rather than inside each action disclosure. Its conditional fallback/voice instructions remain useful, but it does not record the confirmed successful deployment tests or their dates.
+- **docs/DESIGN.md:21:** its screenshot references do not identify the stale Plan baseline message or distinguish historical captures from the current UI.
+- **docs/AGENT.md:21,40:** sowing answers are not guaranteed to retrieve a backtest; voice and deployment verification statements need the confirmed test context without implying physical-phone coverage. Retain conditional missing-credential behavior and distinguish test results from product scope.
+- **docs/API.md:27,157,243:** the older examples predate the confirmed deployed Gemini tests, and the verification text needs that dated context; the budget wording should distinguish combined plan/chat from separate backtest and climate budgets, as line 274 already does.
